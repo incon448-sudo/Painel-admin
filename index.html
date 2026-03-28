@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1A5F2A">
+    <title>Painel Admin - Tarefas do Pix</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .admin-header {
+            background: #1A5F2A;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .admin-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .admin-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1A5F2A;
+        }
+        
+        .stat-card.pendente .value { color: #F59E0B; }
+        .stat-card.aprovado .value { color: #22C55E; }
+        .stat-card.rejeitado .value { color: #EF4444; }
+        
+        /* Filtros */
+        .filtros-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .filtro-btn {
+            padding: 10px 20px;
+            border: 2px solid #E0E0E0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .filtro-btn:hover {
+            border-color: #1A5F2A;
+        }
+        
+        .filtro-btn.active {
+            background: #1A5F2A;
+            color: white;
+            border-color: #1A5F2A;
+        }
+        
+        /* Lista de Saques */
+        .saques-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+        
+        .saque-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #F59E0B;
+            transition: all 0.3s;
+        }
+        
+        .saque-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        .saque-card.aprovado {
+            border-left-color: #22C55E;
+            opacity: 0.95;
+        }
+        
+        .saque-card.rejeitado {
+            border-left-color: #EF4444;
+            opacity: 0.9;
+        }
+        
+        .saque-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .saque-info h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .saque-info p {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .saque-valor {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1A5F2A;
+        }
+        
+        .saque-detalhes {
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .detalhe-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 14px;
+        }
+        
+        .detalhe-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detalhe-label {
+            color: #666;
+        }
+        
+        .detalhe-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .chave-pix {
+            background: #E8F5E9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        
+        /* Ações */
+        .saque-acoes {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-acao {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-acao:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-aprovar {
+            background: #22C55E;
+            color: white;
+        }
+        
+        .btn-aprovar:hover:not(:disabled) {
+            background: #16A34A;
+            transform: translateY(-1px);
+        }
+        
+        .btn-rejeitar {
+            background: #EF4444;
+            color: white;
+        }
+        
+        .btn-rejeitar:hover:not(:disabled) {
+            background: #DC2626;
+            transform: translateY(-1px);
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pendente {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .status-aprovado {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .status-rejeitado {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state .icone {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        /* Loading */
+        .loading-container {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E0E0E0;
+            border-radius: 50%;
+            border-top-color: #1A5F2A;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 300;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.3s;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success {
+            background: #22C55E;
+        }
+        
+        .toast.error {
+            background: #EF4444;
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1A5F2A 0%, #0d3316 100%);
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .login-logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .login-card h2 {
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .login-card .subtitle {
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #1A5F2A;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 18px;
+            background: #1A5F2A;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(26, 95, 42, 0.3);
+        }
+        
+        .btn-login:hover {
+            background: #134021;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 95, 42, 0.4);
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .erro-login {
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #DC2626;
+        }
+        
+        .erro-login.show {
+            display: block;
+        }
+        
+        .hint-box {
+            background: #F0FDF4;
+            border: 1px solid #86EFAC;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #166534;
+        }
+        
+        .hint-box strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .saque-header {
+                flex-direction: column;
+            }
+            
+            .saque-acoes {
+                flex-direction: column;
+            }
+            
+            .login-card {
+                padding: 32px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="login-logo">🔐</div>
+            <h2>Painel Administrativo</h2>
+            <p class="subtitle">Tarefas do Pix - Gerenciamento de Saques</p>
+            
+            <div class="erro-login" id="erroLogin"></div>
+            
+            <div class="input-group">
+                <label>👤 Usuário Admin</label>
+                <input type="text" id="adminUser" placeholder="admin" value="admin">
+            </div>
+            
+            <div class="input-group">
+                <label>🔑 Senha</label>
+                <input type="password" id="adminSenha" placeholder="admin123" value="admin123">
+            </div>
+            
+            <button class="btn-login" onclick="fazerLogin()">Entrar no Painel</button>
+            
+            <div class="hint-box">
+                <strong>💡 Credenciais Padrão:</strong>
+                Usuário: admin | Senha: admin123
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL PRINCIPAL -->
+    <div id="painelScreen" style="display: none;">
+        <div class="admin-header" style="position: relative;">
+            <h1>💰 Painel de Saques</h1>
+            <p>Gerencie as solicitações de saque dos usuários</p>
+            <button class="logout-btn" onclick="fazerLogout()">Sair</button>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="stats-container">
+            <div class="stat-card pendente">
+                <h3>⏳ Pendentes</h3>
+                <div class="value" id="statPendentes">0</div>
+            </div>
+            <div class="stat-card aprovado">
+                <h3>✅ Aprovados</h3>
+                <div class="value" id="statAprovados">0</div>
+            </div>
+            <div class="stat-card rejeitado">
+                <h3>❌ Rejeitados</h3>
+                <div class="value" id="statRejeitados">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>💵 Total Pendente</h3>
+                <div class="value" id="statTotal">R$ 0</div>
+            </div>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="filtros-container">
+            <button class="filtro-btn active" onclick="filtrarSaques('todos')">Todos</button>
+            <button class="filtro-btn" onclick="filtrarSaques('PENDENTE')">⏳ Pendentes</button>
+            <button class="filtro-btn" onclick="filtrarSaques('APROVADO')">✅ Aprovados</button>
+            <button class="filtro-btn" onclick="filtrarSaques('REJEITADO')">❌ Rejeitados</button>
+        </div>
+        
+        <!-- Lista de Saques -->
+        <div class="saques-container" id="saquesList">
+            <div class="loading-container">
+                <div class="loading"></div>
+                <p style="margin-top: 16px; color: #666;">Carregando saques...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ==================== CONFIGURAÇÃO FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUI_gg3WisOWvOfCPM3rrKogrZNLJ-WUE",
+            authDomain: "tarefas-do-pix.firebaseapp.com",
+            databaseURL: "https://tarefas-do-pix-default-rtdb.firebaseio.com",
+            projectId: "tarefas-do-pix",
+            storageBucket: "tarefas-do-pix.firebasestorage.app",
+            messagingSenderId: "236400248524",
+            appId: "1:236400248524:web:62bd73e6da2c07504fa469"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ==================== CONFIGURAÇÃO ADMIN ====================
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'admin123'
+        };
+        
+        // ==================== VARIÁVEIS GLOBAIS ====================
+        let adminLogado = false;
+        let todosSaques = [];
+        let filtroAtual = 'todos';
+        let saquesListener = null;
+        
+        // ==================== AUTENTICAÇÃO ====================
+        function fazerLogin() {
+            const user = document.getElementById('adminUser').value.trim();
+            const senha = document.getElementById('adminSenha').value.trim();
+            const erroEl = document.getElementById('erroLogin');
+            
+            if (user === ADMIN_CREDENTIALS.username && senha === ADMIN_CREDENTIALS.password) {
+                adminLogado = true;
+                mostrarPainel();
+                erroEl.classList.remove('show');
+            } else {
+                erroEl.textContent = '❌ Usuário ou senha incorretos. Use: admin / admin123';
+                erroEl.classList.add('show');
+            }
+        }
+        
+        function fazerLogout() {
+            adminLogado = false;
+            
+            if (saquesListener) {
+                database.ref('saques').off('value', saquesListener);
+            }
+            
+            document.getElementById('adminSenha').value = '';
+            mostrarLogin();
+        }
+        
+        // ==================== NAVEGAÇÃO ====================
+        function mostrarLogin() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('painelScreen').style.display = 'none';
+        }
+        
+        function mostrarPainel() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('painelScreen').style.display = 'block';
+            carregarSaques();
+        }
+        
+        // ==================== CARREGAR SAQUES ====================
+        function carregarSaques() {
+            const container = document.getElementById('saquesList');
+            container.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading"></div>
+                    <p style="margin-top: 16px; color: #666;">Carregando saques...</p>
+                </div>
+            `;
+            
+            const saquesRef = database.ref('saques');
+            
+            if (saquesListener) {
+                saquesRef.off('value', saquesListener);
+            }
+            
+            saquesListener = saquesRef.on('value', (snapshot) => {
+                processarDadosSaques(snapshot);
+            }, (error) => {
+                console.error('Erro ao carregar saques:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">❌</div>
+                        <h3>Erro ao carregar dados</h3>
+                        <p>Verifique a conexão com o Firebase</p>
+                    </div>
+                `;
+            });
+        }
+        
+        function processarDadosSaques(snapshot) {
+            todosSaques = [];
+            let pendentes = 0;
+            let aprovados = 0;
+            let rejeitados = 0;
+            let totalValor = 0;
+            
+            snapshot.forEach((child) => {
+                const saque = child.val();
+                saque.id = child.key;
+                todosSaques.push(saque);
+                
+                if (saque.status === 'PENDENTE') {
+                    pendentes++;
+                    totalValor += saque.valor || 0;
+                } else if (saque.status === 'APROVADO') {
+                    aprovados++;
+                } else if (saque.status === 'REJEITADO') {
+                    rejeitados++;
+                }
+            });
+            
+            // Ordena: pendentes primeiro, depois por data (mais recente)
+            todosSaques.sort((a, b) => {
+                if (a.status === 'PENDENTE' && b.status !== 'PENDENTE') return -1;
+                if (a.status !== 'PENDENTE' && b.status === 'PENDENTE') return 1;
+                return (b.dataSolicitacao || 0) - (a.dataSolicitacao || 0);
+            });
+            
+            // Atualiza estatísticas
+            document.getElementById('statPendentes').textContent = pendentes;
+            document.getElementById('statAprovados').textContent = aprovados;
+            document.getElementById('statRejeitados').textContent = rejeitados;
+            document.getElementById('statTotal').textContent = 'R$ ' + totalValor.toFixed(2);
+            
+            renderizarSaques();
+        }
+        
+        // ==================== RENDERIZAR LISTA ====================
+        function renderizarSaques() {
+            const container = document.getElementById('saquesList');
+            
+            let saquesFiltrados = todosSaques;
+            if (filtroAtual !== 'todos') {
+                saquesFiltrados = todosSaques.filter(s => s.status === filtroAtual);
+            }
+            
+            if (saquesFiltrados.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">📭</div>
+                        <h3>Nenhum saque encontrado</h3>
+                        <p>Não há saques ${filtroAtual === 'todos' ? '' : 'com este status'} no momento.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = saquesFiltrados.map(saque => criarCardSaque(saque)).join('');
+        }
+        
+        function criarCardSaque(saque) {
+            const data = saque.dataSolicitacao ? new Date(saque.dataSolicitacao).toLocaleString('pt-BR') : 'Data não disponível';
+            const statusClass = (saque.status || 'pendente').toLowerCase();
+            const isPendente = saque.status === 'PENDENTE';
+            
+            const botoes = isPendente ? `
+                <div class="saque-acoes">
+                    <button class="btn-acao btn-aprovar" onclick="aprovarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                        ✅ Aprovar
+                    </button>
+                    <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                        ❌ Rejeitar
+                    </button>
+                </div>
+            ` : `
+                <div class="saque-acoes">
+                    <button class="btn-acao" disabled style="background: #E0E0E0; color: #666;">
+                        ${saque.status === 'APROVADO' ? '✅ Aprovado' : '❌ Rejeitado'} 
+                        em ${saque.dataProcessamento ? new Date(saque.dataProcessamento).toLocaleString('pt-BR') : '-'}
+                    </button>
+                </div>
+            `;
+            
+            return `
+                <div class="saque-card ${statusClass}">
+                    <div class="saque-header">
+                        <div class="saque-info">
+                            <h4>${saque.nome || 'Usuário não identificado'}</h4>
+                            <p>${saque.email || 'Email não disponível'}</p>
+                            <span class="status-badge status-${statusClass}">${saque.status || 'PENDENTE'}</span>
+                        </div>
+                        <div class="saque-valor">R$ ${(saque.valor || 0).toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="saque-detalhes">
+                        <div class="detalhe-row">
+                            <span class="detalhe-label">Tipo de Chave:</span>
+                            <span class="detalhe-value">${saque.tipoChavePix || 'CPF'}</span>
+                        </div>
+                        <div class="detalhe-row">
+                            <span class="detalhe-label">Chave Pix:</span>
+                            <span class="detalhe-value chave-pix">${saque.chavePix || '-'}</span>
+                        </div>
+                        <div class="detalhe-row">
+                            <span class="detalhe-label">Solicitado em:</span>
+                            <span class="detalhe-value">${data}</span>
+                        </div>
+                        ${saque.motivoRejeicao ? `
+                        <div class="detalhe-row">
+                            <span class="detalhe-label">Motivo Rejeição:</span>
+                            <span class="detalhe-value" style="color: #EF4444;">${saque.motivoRejeicao}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${botoes}
+                </div>
+            `;
+        }
+        
+        // ==================== FILTROS ====================
+        function filtrarSaques(status) {
+            filtroAtual = status;
+            
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(status.toLowerCase()) || 
+                    (status === 'todos' && btn.textContent === 'Todos')) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            renderizarSaques();
+        }
+        
+        // ==================== AÇÕES DE SAQUE ====================
+        function aprovarSaque(saqueId, userId, valor) {
+            if (!confirm('✅ Aprovar este saque?\n\nValor: R$ ' + (valor || 0).toFixed(2))) return;
+            
+            const agora = Date.now();
+            const updates = {
+                status: 'APROVADO',
+                dataProcessamento: agora,
+                processadoPor: 'admin'
+            };
+            
+            database.ref('saques/' + saqueId).update(updates)
+                .then(() => {
+                    showToast('✅ Saque aprovado!', 'success');
+                    
+                    return database.ref('transacoes/' + userId).push({
+                        tipo: 'SAQUE_APROVADO',
+                        valor: -(valor || 0),
+                        descricao: 'Saque aprovado via Pix',
+                        data: agora,
+                        saqueId: saqueId
+                    });
+                })
+                .catch((error) => {
+                    showToast('❌ Erro: ' + error.message, 'error');
+                });
+        }
+        
+        function rejeitarSaque(saqueId, userId, valor) {
+            const motivo = prompt('Motivo da rejeição:');
+            if (motivo === null) return;
+            
+            if (!confirm('❌ Rejeitar e estornar R$ ' + (valor || 0).toFixed(2) + '?')) return;
+            
+            const agora = Date.now();
+            
+            database.ref('usuarios/' + userId + '/saldo').once('value')
+                .then((snapshot) => {
+                    const saldoAtual = snapshot.val() || 0;
+                    const novoSaldo = saldoAtual + (valor || 0);
+                    
+                    return Promise.all([
+                        database.ref('saques/' + saqueId).update({
+                            status: 'REJEITADO',
+                            dataProcessamento: agora,
+                            processadoPor: 'admin',
+                            motivoRejeicao: motivo || 'Não especificado'
+                        }),
+                        database.ref('usuarios/' + userId + '/saldo').set(novoSaldo),
+                        database.ref('transacoes/' + userId).push({
+                            tipo: 'ESTORNO',
+                            valor: valor || 0,
+                            descricao: 'Saque rejeitado - valor estornado',
+                            data: agora,
+                            saqueId: saqueId,
+                            motivo: motivo || 'Não especificado'
+                        })
+                    ]);
+                })
+                .then(() => {
+                    showToast('❌ Saque rejeitado e estornado', 'success');
+                })
+                .catch((error) => {
+                    showToast('❌ Erro: ' + error.message, 'error');
+                });
+        }
+        
+        // ==================== UTILITÁRIOS ====================
+        function showToast(mensagem, tipo = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensagem;
+            toast.className = 'toast ' + tipo;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Login com Enter
+        document.getElementById('adminSenha')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fazerLogin();
+        });
+    </script>
+</body>
+</html>
