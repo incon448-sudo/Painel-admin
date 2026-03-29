@@ -30,6 +30,7 @@
             color: white;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: relative;
         }
         
         .admin-header h1 {
@@ -98,7 +99,8 @@
         }
         
         .stat-card.pendente .value { color: #F59E0B; }
-        .stat-card.aprovado .value { color: #22C55E; }
+        .stat-card.processando .value { color: #3B82F6; }
+        .stat-card.concluido .value { color: #22C55E; }
         .stat-card.rejeitado .value { color: #EF4444; }
         
         /* Filtros */
@@ -152,7 +154,11 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
         
-        .saque-card.aprovado {
+        .saque-card.processando {
+            border-left-color: #3B82F6;
+        }
+        
+        .saque-card.concluido {
             border-left-color: #22C55E;
             opacity: 0.95;
         }
@@ -229,10 +235,12 @@
         .saque-acoes {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
         
         .btn-acao {
             flex: 1;
+            min-width: 140px;
             padding: 14px;
             border: none;
             border-radius: 10px;
@@ -251,12 +259,22 @@
             cursor: not-allowed;
         }
         
-        .btn-aprovar {
+        .btn-processar {
+            background: #3B82F6;
+            color: white;
+        }
+        
+        .btn-processar:hover:not(:disabled) {
+            background: #2563EB;
+            transform: translateY(-1px);
+        }
+        
+        .btn-concluir {
             background: #22C55E;
             color: white;
         }
         
-        .btn-aprovar:hover:not(:disabled) {
+        .btn-concluir:hover:not(:disabled) {
             background: #16A34A;
             transform: translateY(-1px);
         }
@@ -285,7 +303,12 @@
             color: #92400E;
         }
         
-        .status-aprovado {
+        .status-processando {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+        
+        .status-concluido {
             background: #D1FAE5;
             color: #065F46;
         }
@@ -539,9 +562,13 @@
                 <h3>⏳ Pendentes</h3>
                 <div class="value" id="statPendentes">0</div>
             </div>
-            <div class="stat-card aprovado">
-                <h3>✅ Aprovados</h3>
-                <div class="value" id="statAprovados">0</div>
+            <div class="stat-card processando">
+                <h3>⚙️ Processando</h3>
+                <div class="value" id="statProcessando">0</div>
+            </div>
+            <div class="stat-card concluido">
+                <h3>✅ Concluídos</h3>
+                <div class="value" id="statConcluidos">0</div>
             </div>
             <div class="stat-card rejeitado">
                 <h3>❌ Rejeitados</h3>
@@ -557,7 +584,8 @@
         <div class="filtros-container">
             <button class="filtro-btn active" onclick="filtrarSaques('todos')">Todos</button>
             <button class="filtro-btn" onclick="filtrarSaques('PENDENTE')">⏳ Pendentes</button>
-            <button class="filtro-btn" onclick="filtrarSaques('APROVADO')">✅ Aprovados</button>
+            <button class="filtro-btn" onclick="filtrarSaques('PROCESSANDO')">⚙️ Processando</button>
+            <button class="filtro-btn" onclick="filtrarSaques('CONCLUIDO')">✅ Concluídos</button>
             <button class="filtro-btn" onclick="filtrarSaques('REJEITADO')">❌ Rejeitados</button>
         </div>
         
@@ -672,7 +700,8 @@
         function processarDadosSaques(snapshot) {
             todosSaques = [];
             let pendentes = 0;
-            let aprovados = 0;
+            let processando = 0;
+            let concluidos = 0;
             let rejeitados = 0;
             let totalValor = 0;
             
@@ -681,26 +710,42 @@
                 saque.id = child.key;
                 todosSaques.push(saque);
                 
-                if (saque.status === 'PENDENTE') {
+                const status = saque.status || 'PENDENTE';
+                
+                if (status === 'PENDENTE') {
                     pendentes++;
                     totalValor += saque.valor || 0;
-                } else if (saque.status === 'APROVADO') {
-                    aprovados++;
-                } else if (saque.status === 'REJEITADO') {
+                } else if (status === 'PROCESSANDO') {
+                    processando++;
+                    totalValor += saque.valor || 0;
+                } else if (status === 'CONCLUIDO' || status === 'COMPLETO') {
+                    concluidos++;
+                } else if (status === 'REJEITADO' || status === 'CANCELADO') {
                     rejeitados++;
                 }
             });
             
-            // Ordena: pendentes primeiro, depois por data (mais recente)
+            // Ordena: pendentes primeiro, depois processando, depois por data
             todosSaques.sort((a, b) => {
-                if (a.status === 'PENDENTE' && b.status !== 'PENDENTE') return -1;
-                if (a.status !== 'PENDENTE' && b.status === 'PENDENTE') return 1;
+                const statusA = a.status || 'PENDENTE';
+                const statusB = b.status || 'PENDENTE';
+                
+                // Pendentes primeiro
+                if (statusA === 'PENDENTE' && statusB !== 'PENDENTE') return -1;
+                if (statusA !== 'PENDENTE' && statusB === 'PENDENTE') return 1;
+                
+                // Processando depois
+                if (statusA === 'PROCESSANDO' && statusB !== 'PROCESSANDO' && statusB !== 'PENDENTE') return -1;
+                if (statusA !== 'PROCESSANDO' && statusA !== 'PENDENTE' && statusB === 'PROCESSANDO') return 1;
+                
+                // Por data (mais recente primeiro)
                 return (b.dataSolicitacao || 0) - (a.dataSolicitacao || 0);
             });
             
             // Atualiza estatísticas
             document.getElementById('statPendentes').textContent = pendentes;
-            document.getElementById('statAprovados').textContent = aprovados;
+            document.getElementById('statProcessando').textContent = processando;
+            document.getElementById('statConcluidos').textContent = concluidos;
             document.getElementById('statRejeitados').textContent = rejeitados;
             document.getElementById('statTotal').textContent = 'R$ ' + totalValor.toFixed(2);
             
@@ -713,7 +758,17 @@
             
             let saquesFiltrados = todosSaques;
             if (filtroAtual !== 'todos') {
-                saquesFiltrados = todosSaques.filter(s => s.status === filtroAtual);
+                if (filtroAtual === 'CONCLUIDO') {
+                    saquesFiltrados = todosSaques.filter(s => 
+                        s.status === 'CONCLUIDO' || s.status === 'COMPLETO'
+                    );
+                } else if (filtroAtual === 'REJEITADO') {
+                    saquesFiltrados = todosSaques.filter(s => 
+                        s.status === 'REJEITADO' || s.status === 'CANCELADO'
+                    );
+                } else {
+                    saquesFiltrados = todosSaques.filter(s => s.status === filtroAtual);
+                }
             }
             
             if (saquesFiltrados.length === 0) {
@@ -732,26 +787,45 @@
         
         function criarCardSaque(saque) {
             const data = saque.dataSolicitacao ? new Date(saque.dataSolicitacao).toLocaleString('pt-BR') : 'Data não disponível';
-            const statusClass = (saque.status || 'pendente').toLowerCase();
-            const isPendente = saque.status === 'PENDENTE';
+            const status = (saque.status || 'PENDENTE');
+            const statusClass = status.toLowerCase();
             
-            const botoes = isPendente ? `
-                <div class="saque-acoes">
-                    <button class="btn-acao btn-aprovar" onclick="aprovarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
-                        ✅ Aprovar
-                    </button>
-                    <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
-                        ❌ Rejeitar
-                    </button>
-                </div>
-            ` : `
-                <div class="saque-acoes">
-                    <button class="btn-acao" disabled style="background: #E0E0E0; color: #666;">
-                        ${saque.status === 'APROVADO' ? '✅ Aprovado' : '❌ Rejeitado'} 
-                        em ${saque.dataProcessamento ? new Date(saque.dataProcessamento).toLocaleString('pt-BR') : '-'}
-                    </button>
-                </div>
-            `;
+            let botoes = '';
+            
+            if (status === 'PENDENTE') {
+                botoes = `
+                    <div class="saque-acoes">
+                        <button class="btn-acao btn-processar" onclick="processarSaque('${saque.id}')">
+                            ⚙️ Marcar Processando
+                        </button>
+                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                            ❌ Rejeitar
+                        </button>
+                    </div>
+                `;
+            } else if (status === 'PROCESSANDO') {
+                botoes = `
+                    <div class="saque-acoes">
+                        <button class="btn-acao btn-concluir" onclick="concluirSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                            ✅ Concluir Saque
+                        </button>
+                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                            ❌ Rejeitar
+                        </button>
+                    </div>
+                `;
+            } else {
+                const dataFinal = saque.dataProcessamento || saque.dataConclusao;
+                const dataStr = dataFinal ? new Date(dataFinal).toLocaleString('pt-BR') : '-';
+                botoes = `
+                    <div class="saque-acoes">
+                        <button class="btn-acao" disabled style="background: #E0E0E0; color: #666;">
+                            ${status === 'CONCLUIDO' || status === 'COMPLETO' ? '✅ Concluído' : '❌ Rejeitado'} 
+                            em ${dataStr}
+                        </button>
+                    </div>
+                `;
+            }
             
             return `
                 <div class="saque-card ${statusClass}">
@@ -759,7 +833,7 @@
                         <div class="saque-info">
                             <h4>${saque.nome || 'Usuário não identificado'}</h4>
                             <p>${saque.email || 'Email não disponível'}</p>
-                            <span class="status-badge status-${statusClass}">${saque.status || 'PENDENTE'}</span>
+                            <span class="status-badge status-${statusClass}">${status}</span>
                         </div>
                         <div class="saque-valor">R$ ${(saque.valor || 0).toFixed(2)}</div>
                     </div>
@@ -783,6 +857,12 @@
                             <span class="detalhe-value" style="color: #EF4444;">${saque.motivoRejeicao}</span>
                         </div>
                         ` : ''}
+                        ${saque.codigoTransacao ? `
+                        <div class="detalhe-row">
+                            <span class="detalhe-label">Código Transação:</span>
+                            <span class="detalhe-value" style="font-family: monospace;">${saque.codigoTransacao}</span>
+                        </div>
+                        ` : ''}
                     </div>
                     
                     ${botoes}
@@ -796,8 +876,12 @@
             
             document.querySelectorAll('.filtro-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.textContent.toLowerCase().includes(status.toLowerCase()) || 
-                    (status === 'todos' && btn.textContent === 'Todos')) {
+                const btnText = btn.textContent.toLowerCase();
+                if ((status === 'todos' && btnText.includes('todos')) ||
+                    (status === 'PENDENTE' && btnText.includes('pendentes')) ||
+                    (status === 'PROCESSANDO' && btnText.includes('processando')) ||
+                    (status === 'CONCLUIDO' && btnText.includes('concluídos')) ||
+                    (status === 'REJEITADO' && btnText.includes('rejeitados'))) {
                     btn.classList.add('active');
                 }
             });
@@ -806,70 +890,99 @@
         }
         
         // ==================== AÇÕES DE SAQUE ====================
-        function aprovarSaque(saqueId, userId, valor) {
-            if (!confirm('✅ Aprovar este saque?\n\nValor: R$ ' + (valor || 0).toFixed(2))) return;
+        function processarSaque(saqueId) {
+            if (!confirm('⚙️ Marcar este saque como EM PROCESSAMENTO?')) return;
             
             const agora = Date.now();
-            const updates = {
-                status: 'APROVADO',
+            
+            database.ref('saques/' + saqueId).update({
+                status: 'PROCESSANDO',
                 dataProcessamento: agora,
                 processadoPor: 'admin'
-            };
-            
-            database.ref('saques/' + saqueId).update(updates)
-                .then(() => {
-                    showToast('✅ Saque aprovado!', 'success');
-                    
-                    return database.ref('transacoes/' + userId).push({
-                        tipo: 'SAQUE_APROVADO',
-                        valor: -(valor || 0),
-                        descricao: 'Saque aprovado via Pix',
-                        data: agora,
-                        saqueId: saqueId
-                    });
-                })
-                .catch((error) => {
-                    showToast('❌ Erro: ' + error.message, 'error');
-                });
+            })
+            .then(() => {
+                showToast('⚙️ Saque em processamento!', 'success');
+            })
+            .catch((error) => {
+                showToast('❌ Erro: ' + error.message, 'error');
+            });
         }
         
-        function rejeitarSaque(saqueId, userId, valor) {
-            const motivo = prompt('Motivo da rejeição:');
-            if (motivo === null) return;
+        function concluirSaque(saqueId, userId, valor) {
+            const codigoTransacao = prompt('Digite o código da transação Pix (opcional):');
+            if (codigoTransacao === null) return; // Cancelou
             
-            if (!confirm('❌ Rejeitar e estornar R$ ' + (valor || 0).toFixed(2) + '?')) return;
+            if (!confirm('✅ Confirmar conclusão do saque?\n\nValor: R$ ' + (valor || 0).toFixed(2))) return;
             
             const agora = Date.now();
             
-            database.ref('usuarios/' + userId + '/saldo').once('value')
-                .then((snapshot) => {
-                    const saldoAtual = snapshot.val() || 0;
-                    const novoSaldo = saldoAtual + (valor || 0);
-                    
-                    return Promise.all([
-                        database.ref('saques/' + saqueId).update({
-                            status: 'REJEITADO',
-                            dataProcessamento: agora,
-                            processadoPor: 'admin',
-                            motivoRejeicao: motivo || 'Não especificado'
-                        }),
-                        database.ref('usuarios/' + userId + '/saldo').set(novoSaldo),
-                        database.ref('transacoes/' + userId).push({
-                            tipo: 'ESTORNO',
-                            valor: valor || 0,
-                            descricao: 'Saque rejeitado - valor estornado',
-                            data: agora,
-                            saqueId: saqueId,
-                            motivo: motivo || 'Não especificado'
-                        })
-                    ]);
-                })
-                .then(() => {
-                    showToast('❌ Saque rejeitado e estornado', 'success');
-                })
-                .catch((error) => {
-                    showToast('❌ Erro: ' + error.message, 'error');
+            database.ref('saques/' + saqueId).update({
+                status: 'CONCLUIDO',
+                dataConclusao: agora,
+                dataProcessamento: agora,
+                processadoPor: 'admin',
+                codigoTransacao: codigoTransacao || null
+            })
+            .then(() => {
+                showToast('✅ Saque concluído com sucesso!', 'success');
+                
+                // Registra transação de conclusão
+                return database.ref('transacoes/' + userId).push({
+                    tipo: 'SAQUE_CONCLUIDO',
+                    valor: -(valor || 0),
+                    descricao: 'Saque concluído via Pix',
+                    data: agora,
+                    saqueId: saqueId,
+                    codigoTransacao: codigoTransacao || null
                 });
+            })
+            .catch((error) => {
+                showToast('❌ Erro: ' + error.message, 'error');
+            });
+        }
+        
+        // ==================== REJEITAR SAQUE (SISTEMA DE ESTORNO PENDENTE) ====================
+        function rejeitarSaque(saqueId, userId, valor) {
+            const motivo = prompt('Motivo da rejeição:');
+            if (motivo === null) return; // Cancelou
+            
+            if (!confirm('❌ Rejeitar saque de R$ ' + (valor || 0).toFixed(2) + '?\n\nO valor será estornado quando o usuário abrir o app.')) return;
+            
+            const agora = Date.now();
+            
+            // Cria estorno pendente (o app do usuário vai processar)
+            Promise.all([
+                // Atualiza status do saque
+                database.ref('saques/' + saqueId).update({
+                    status: 'REJEITADO',
+                    dataProcessamento: agora,
+                    processadoPor: 'admin',
+                    motivoRejeicao: motivo || 'Não especificado'
+                }),
+                // Crega estorno pendente para o usuário
+                database.ref('estornosPendentes/' + userId).push({
+                    saqueId: saqueId,
+                    valor: valor || 0,
+                    motivo: motivo || 'Não especificado',
+                    dataRejeicao: agora,
+                    processado: false
+                }),
+                // Registra transação
+                database.ref('transacoes/' + userId).push({
+                    tipo: 'SAQUE_REJEITADO',
+                    valor: -(valor || 0),
+                    descricao: 'Saque rejeitado - estorno pendente',
+                    data: agora,
+                    saqueId: saqueId,
+                    motivo: motivo || 'Não especificado'
+                })
+            ])
+            .then(() => {
+                showToast('❌ Saque rejeitado! Estorno pendente para o usuário.', 'success');
+            })
+            .catch((error) => {
+                showToast('❌ Erro: ' + error.message, 'error');
+            });
         }
         
         // ==================== UTILITÁRIOS ====================
