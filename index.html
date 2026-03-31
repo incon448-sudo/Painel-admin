@@ -259,6 +259,11 @@
             cursor: not-allowed;
         }
         
+        .btn-acao.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
         .btn-processar {
             background: #3B82F6;
             color: white;
@@ -316,6 +321,25 @@
         .status-rejeitado {
             background: #FEE2E2;
             color: #991B1B;
+        }
+        
+        /* Badge de Estorno */
+        .estorno-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #F0FDF4;
+            color: #166534;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .estorno-badge.pendente {
+            background: #FEF3C7;
+            color: #92400E;
         }
         
         /* Empty State */
@@ -468,6 +492,11 @@
             transform: translateY(0);
         }
         
+        .btn-login.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
         .erro-login {
             background: #FEE2E2;
             color: #DC2626;
@@ -539,7 +568,7 @@
                 <input type="password" id="adminSenha" placeholder="admin123" value="admin123">
             </div>
             
-            <button class="btn-login" onclick="fazerLogin()">Entrar no Painel</button>
+            <button class="btn-login" onclick="fazerLogin()" id="btnLogin">Entrar no Painel</button>
             
             <div class="hint-box">
                 <strong>💡 Credenciais Padrão:</strong>
@@ -633,14 +662,27 @@
             const user = document.getElementById('adminUser').value.trim();
             const senha = document.getElementById('adminSenha').value.trim();
             const erroEl = document.getElementById('erroLogin');
+            const btnLogin = document.getElementById('btnLogin');
+            
+            // Loading state
+            btnLogin.classList.add('loading');
+            btnLogin.textContent = 'Entrando...';
             
             if (user === ADMIN_CREDENTIALS.username && senha === ADMIN_CREDENTIALS.password) {
                 adminLogado = true;
-                mostrarPainel();
-                erroEl.classList.remove('show');
+                setTimeout(() => {
+                    mostrarPainel();
+                    erroEl.classList.remove('show');
+                    btnLogin.classList.remove('loading');
+                    btnLogin.textContent = 'Entrar no Painel';
+                }, 500);
             } else {
-                erroEl.textContent = '❌ Usuário ou senha incorretos. Use: admin / admin123';
-                erroEl.classList.add('show');
+                setTimeout(() => {
+                    erroEl.textContent = '❌ Usuário ou senha incorretos. Use: admin / admin123';
+                    erroEl.classList.add('show');
+                    btnLogin.classList.remove('loading');
+                    btnLogin.textContent = 'Entrar no Painel';
+                }, 500);
             }
         }
         
@@ -790,15 +832,25 @@
             const status = (saque.status || 'PENDENTE');
             const statusClass = status.toLowerCase();
             
+            // Verifica se tem estorno pendente ou aplicado
+            let estornoBadge = '';
+            if (status === 'REJEITADO' || status === 'CANCELADO') {
+                if (saque.estornoAplicado) {
+                    estornoBadge = `<span class="estorno-badge">💰 Estornado</span>`;
+                } else {
+                    estornoBadge = `<span class="estorno-badge pendente">⏳ Estorno Pendente</span>`;
+                }
+            }
+            
             let botoes = '';
             
             if (status === 'PENDENTE') {
                 botoes = `
                     <div class="saque-acoes">
-                        <button class="btn-acao btn-processar" onclick="processarSaque('${saque.id}')">
+                        <button class="btn-acao btn-processar" onclick="processarSaque('${saque.id}')" id="btnProc_${saque.id}">
                             ⚙️ Marcar Processando
                         </button>
-                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})" id="btnRej_${saque.id}">
                             ❌ Rejeitar
                         </button>
                     </div>
@@ -806,10 +858,10 @@
             } else if (status === 'PROCESSANDO') {
                 botoes = `
                     <div class="saque-acoes">
-                        <button class="btn-acao btn-concluir" onclick="concluirSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                        <button class="btn-acao btn-concluir" onclick="concluirSaque('${saque.id}', '${saque.userId}', ${saque.valor})" id="btnConc_${saque.id}">
                             ✅ Concluir Saque
                         </button>
-                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})">
+                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})" id="btnRej_${saque.id}">
                             ❌ Rejeitar
                         </button>
                     </div>
@@ -831,7 +883,7 @@
                 <div class="saque-card ${statusClass}">
                     <div class="saque-header">
                         <div class="saque-info">
-                            <h4>${saque.nome || 'Usuário não identificado'}</h4>
+                            <h4>${saque.nome || 'Usuário não identificado'} ${estornoBadge}</h4>
                             <p>${saque.email || 'Email não disponível'}</p>
                             <span class="status-badge status-${statusClass}">${status}</span>
                         </div>
@@ -863,6 +915,14 @@
                             <span class="detalhe-value" style="font-family: monospace;">${saque.codigoTransacao}</span>
                         </div>
                         ` : ''}
+                        ${saque.estornoAplicado ? `
+                        <div class="detalhe-row">
+                            <span class="detalhe-label">💰 Estorno Aplicado:</span>
+                            <span class="detalhe-value" style="color: #22C55E;">
+                                ${new Date(saque.dataEstorno).toLocaleString('pt-BR')}
+                            </span>
+                        </div>
+                        ` : ''}
                     </div>
                     
                     ${botoes}
@@ -890,8 +950,26 @@
         }
         
         // ==================== AÇÕES DE SAQUE ====================
+        function setButtonLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                if (loading) {
+                    btn.classList.add('loading');
+                    btn.dataset.originalText = btn.innerHTML;
+                    btn.innerHTML = '<span class="loading" style="width: 16px; height: 16px; border-width: 2px;"></span> Processando...';
+                } else {
+                    btn.classList.remove('loading');
+                    if (btn.dataset.originalText) {
+                        btn.innerHTML = btn.dataset.originalText;
+                    }
+                }
+            }
+        }
+        
         function processarSaque(saqueId) {
             if (!confirm('⚙️ Marcar este saque como EM PROCESSAMENTO?')) return;
+            
+            setButtonLoading('btnProc_' + saqueId, true);
             
             const agora = Date.now();
             
@@ -905,14 +983,17 @@
             })
             .catch((error) => {
                 showToast('❌ Erro: ' + error.message, 'error');
+                setButtonLoading('btnProc_' + saqueId, false);
             });
         }
         
         function concluirSaque(saqueId, userId, valor) {
             const codigoTransacao = prompt('Digite o código da transação Pix (opcional):');
-            if (codigoTransacao === null) return; // Cancelou
+            if (codigoTransacao === null) return;
             
             if (!confirm('✅ Confirmar conclusão do saque?\n\nValor: R$ ' + (valor || 0).toFixed(2))) return;
+            
+            setButtonLoading('btnConc_' + saqueId, true);
             
             const agora = Date.now();
             
@@ -926,7 +1007,6 @@
             .then(() => {
                 showToast('✅ Saque concluído com sucesso!', 'success');
                 
-                // Registra transação de conclusão
                 return database.ref('transacoes/' + userId).push({
                     tipo: 'SAQUE_CONCLUIDO',
                     valor: -(valor || 0),
@@ -938,50 +1018,47 @@
             })
             .catch((error) => {
                 showToast('❌ Erro: ' + error.message, 'error');
+                setButtonLoading('btnConc_' + saqueId, false);
             });
         }
         
-        // ==================== REJEITAR SAQUE (SISTEMA DE ESTORNO PENDENTE) ====================
+        // ==================== REJEITAR SAQUE (CORRIGIDO) ====================
         function rejeitarSaque(saqueId, userId, valor) {
             const motivo = prompt('Motivo da rejeição:');
-            if (motivo === null) return; // Cancelou
+            if (motivo === null) return;
             
-            if (!confirm('❌ Rejeitar saque de R$ ' + (valor || 0).toFixed(2) + '?\n\nO valor será estornado quando o usuário abrir o app.')) return;
+            if (!confirm('❌ Rejeitar saque de R$ ' + (valor || 0).toFixed(2) + '?\n\nO valor será devolvido automaticamente ao saldo do usuário quando ele abrir o app.')) return;
+            
+            setButtonLoading('btnRej_' + saqueId, true);
             
             const agora = Date.now();
             
-            // Cria estorno pendente (o app do usuário vai processar)
-            Promise.all([
-                // Atualiza status do saque
-                database.ref('saques/' + saqueId).update({
-                    status: 'REJEITADO',
-                    dataProcessamento: agora,
-                    processadoPor: 'admin',
-                    motivoRejeicao: motivo || 'Não especificado'
-                }),
-                // Crega estorno pendente para o usuário
-                database.ref('estornosPendentes/' + userId).push({
-                    saqueId: saqueId,
-                    valor: valor || 0,
-                    motivo: motivo || 'Não especificado',
-                    dataRejeicao: agora,
-                    processado: false
-                }),
-                // Registra transação
-                database.ref('transacoes/' + userId).push({
+            // IMPORTANTE: Agora atualiza diretamente o saque, não cria nó separado
+            // O app do usuário vai detectar pelo status REJEITADO e estornoAplicado=false
+            database.ref('saques/' + saqueId).update({
+                status: 'REJEITADO',
+                dataProcessamento: agora,
+                processadoPor: 'admin',
+                motivoRejeicao: motivo || 'Não especificado',
+                estornoAplicado: false,  // <-- Importante! App vai detectar isso
+                dataEstorno: null
+            })
+            .then(() => {
+                showToast('❌ Saque rejeitado! Estorno pendente.', 'success');
+                
+                // Registra transação de rejeição
+                return database.ref('transacoes/' + userId).push({
                     tipo: 'SAQUE_REJEITADO',
                     valor: -(valor || 0),
-                    descricao: 'Saque rejeitado - estorno pendente',
+                    descricao: 'Saque rejeitado - aguardando estorno',
                     data: agora,
                     saqueId: saqueId,
                     motivo: motivo || 'Não especificado'
-                })
-            ])
-            .then(() => {
-                showToast('❌ Saque rejeitado! Estorno pendente para o usuário.', 'success');
+                });
             })
             .catch((error) => {
                 showToast('❌ Erro: ' + error.message, 'error');
+                setButtonLoading('btnRej_' + saqueId, false);
             });
         }
         
