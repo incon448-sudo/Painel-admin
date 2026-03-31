@@ -61,6 +61,43 @@
             background: rgba(255,255,255,0.3);
         }
         
+        /* Menu de Navegação */
+        .nav-menu {
+            background: white;
+            padding: 0 20px;
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+        
+        .nav-item {
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-item:hover {
+            color: #1A5F2A;
+            background: #F9FAFB;
+        }
+        
+        .nav-item.active {
+            color: #1A5F2A;
+            border-bottom-color: #1A5F2A;
+            background: #F0FDF4;
+        }
+        
         /* Stats Cards */
         .stats-container {
             display: grid;
@@ -134,7 +171,7 @@
         }
         
         /* Lista de Saques */
-        .saques-container {
+        .saques-container, .content-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px 40px;
@@ -291,6 +328,16 @@
         
         .btn-rejeitar:hover:not(:disabled) {
             background: #DC2626;
+            transform: translateY(-1px);
+        }
+        
+        .btn-editar {
+            background: #F59E0B;
+            color: white;
+        }
+        
+        .btn-editar:hover:not(:disabled) {
+            background: #D97706;
             transform: translateY(-1px);
         }
         
@@ -453,7 +500,7 @@
             font-weight: 600;
         }
         
-        .input-group input {
+        .input-group input, .input-group select {
             width: 100%;
             padding: 16px;
             border: 2px solid #E0E0E0;
@@ -462,7 +509,7 @@
             transition: all 0.3s;
         }
         
-        .input-group input:focus {
+        .input-group input:focus, .input-group select:focus {
             outline: none;
             border-color: #1A5F2A;
         }
@@ -527,22 +574,328 @@
             margin-bottom: 4px;
         }
         
+        /* Seções do Painel */
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        /* Cards de Usuários */
+        .user-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        
+        .user-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .user-info h4 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .user-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .user-saldo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1A5F2A;
+        }
+        
+        .saldo-negativo {
+            color: #EF4444;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-saldo {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        
+        .btn-adicionar {
+            background: #22C55E;
+            color: white;
+        }
+        
+        .btn-adicionar:hover {
+            background: #16A34A;
+        }
+        
+        .btn-remover {
+            background: #EF4444;
+            color: white;
+        }
+        
+        .btn-remover:hover {
+            background: #DC2626;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        
+        .modal-header h3 {
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #E0E0E0;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .btn-cancelar {
+            padding: 12px 24px;
+            border: 2px solid #E0E0E0;
+            background: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-cancelar:hover {
+            border-color: #999;
+        }
+        
+        .btn-confirmar {
+            padding: 12px 24px;
+            border: none;
+            background: #1A5F2A;
+            color: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-confirmar:hover {
+            background: #134021;
+        }
+        
+        /* Apps/Links */
+        .app-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #3B82F6;
+        }
+        
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+        
+        .app-info h4 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .app-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .app-recompensa {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1A5F2A;
+        }
+        
+        .app-link {
+            background: #F3F4F6;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            color: #374151;
+            margin: 12px 0;
+        }
+        
+        .btn-novo {
+            background: #1A5F2A;
+            color: white;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+        
+        .btn-novo:hover {
+            background: #134021;
+            transform: translateY(-2px);
+        }
+        
+        .btn-excluir {
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-excluir:hover {
+            background: #FECACA;
+        }
+        
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #E5E7EB;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .toggle.active {
+            background: #22C55E;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle.active .toggle-slider {
+            transform: translateX(24px);
+        }
+        
         /* Responsivo */
         @media (max-width: 768px) {
             .stats-container {
                 grid-template-columns: repeat(2, 1fr);
             }
             
-            .saque-header {
+            .saque-header, .user-header, .app-header {
                 flex-direction: column;
             }
             
-            .saque-acoes {
+            .saque-acoes, .user-actions {
                 flex-direction: column;
             }
             
             .login-card {
                 padding: 32px 24px;
+            }
+            
+            .nav-item {
+                padding: 12px 16px;
+                font-size: 13px;
             }
         }
     </style>
@@ -554,7 +907,7 @@
         <div class="login-card">
             <div class="login-logo">🔐</div>
             <h2>Painel Administrativo</h2>
-            <p class="subtitle">Tarefas do Pix - Gerenciamento de Saques</p>
+            <p class="subtitle">Tarefas do Pix - Gerenciamento Completo</p>
             
             <div class="erro-login" id="erroLogin"></div>
             
@@ -580,49 +933,186 @@
     <!-- PAINEL PRINCIPAL -->
     <div id="painelScreen" style="display: none;">
         <div class="admin-header" style="position: relative;">
-            <h1>💰 Painel de Saques</h1>
-            <p>Gerencie as solicitações de saque dos usuários</p>
+            <h1>💰 Painel Administrativo</h1>
+            <p>Gerencie saques, saldos e tarefas dos usuários</p>
             <button class="logout-btn" onclick="fazerLogout()">Sair</button>
         </div>
         
-        <!-- Estatísticas -->
-        <div class="stats-container">
-            <div class="stat-card pendente">
-                <h3>⏳ Pendentes</h3>
-                <div class="value" id="statPendentes">0</div>
+        <!-- Menu de Navegação -->
+        <div class="nav-menu">
+            <button class="nav-item active" onclick="mostrarSecao('saques')">
+                💸 Saques
+            </button>
+            <button class="nav-item" onclick="mostrarSecao('usuarios')">
+                👥 Usuários & Saldo
+            </button>
+            <button class="nav-item" onclick="mostrarSecao('apps')">
+                📱 Apps & Links
+            </button>
+        </div>
+        
+        <!-- SEÇÃO: SAQUES -->
+        <div id="secaoSaques" class="section active">
+            <!-- Estatísticas -->
+            <div class="stats-container">
+                <div class="stat-card pendente">
+                    <h3>⏳ Pendentes</h3>
+                    <div class="value" id="statPendentes">0</div>
+                </div>
+                <div class="stat-card processando">
+                    <h3>⚙️ Processando</h3>
+                    <div class="value" id="statProcessando">0</div>
+                </div>
+                <div class="stat-card concluido">
+                    <h3>✅ Concluídos</h3>
+                    <div class="value" id="statConcluidos">0</div>
+                </div>
+                <div class="stat-card rejeitado">
+                    <h3>❌ Rejeitados</h3>
+                    <div class="value" id="statRejeitados">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>💵 Total Pendente</h3>
+                    <div class="value" id="statTotal">R$ 0</div>
+                </div>
             </div>
-            <div class="stat-card processando">
-                <h3>⚙️ Processando</h3>
-                <div class="value" id="statProcessando">0</div>
+            
+            <!-- Filtros -->
+            <div class="filtros-container">
+                <button class="filtro-btn active" onclick="filtrarSaques('todos')">Todos</button>
+                <button class="filtro-btn" onclick="filtrarSaques('PENDENTE')">⏳ Pendentes</button>
+                <button class="filtro-btn" onclick="filtrarSaques('PROCESSANDO')">⚙️ Processando</button>
+                <button class="filtro-btn" onclick="filtrarSaques('CONCLUIDO')">✅ Concluídos</button>
+                <button class="filtro-btn" onclick="filtrarSaques('REJEITADO')">❌ Rejeitados</button>
             </div>
-            <div class="stat-card concluido">
-                <h3>✅ Concluídos</h3>
-                <div class="value" id="statConcluidos">0</div>
-            </div>
-            <div class="stat-card rejeitado">
-                <h3>❌ Rejeitados</h3>
-                <div class="value" id="statRejeitados">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>💵 Total Pendente</h3>
-                <div class="value" id="statTotal">R$ 0</div>
+            
+            <!-- Lista de Saques -->
+            <div class="saques-container" id="saquesList">
+                <div class="loading-container">
+                    <div class="loading"></div>
+                    <p style="margin-top: 16px; color: #666;">Carregando saques...</p>
+                </div>
             </div>
         </div>
         
-        <!-- Filtros -->
-        <div class="filtros-container">
-            <button class="filtro-btn active" onclick="filtrarSaques('todos')">Todos</button>
-            <button class="filtro-btn" onclick="filtrarSaques('PENDENTE')">⏳ Pendentes</button>
-            <button class="filtro-btn" onclick="filtrarSaques('PROCESSANDO')">⚙️ Processando</button>
-            <button class="filtro-btn" onclick="filtrarSaques('CONCLUIDO')">✅ Concluídos</button>
-            <button class="filtro-btn" onclick="filtrarSaques('REJEITADO')">❌ Rejeitados</button>
+        <!-- SEÇÃO: USUÁRIOS -->
+        <div id="secaoUsuarios" class="section">
+            <div class="content-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <h2 style="color: #333;">👥 Gerenciamento de Usuários</h2>
+                    <div style="display: flex; gap: 12px;">
+                        <input type="text" id="buscaUsuario" placeholder="🔍 Buscar usuário..." 
+                               style="padding: 12px 16px; border: 2px solid #E0E0E0; border-radius: 10px; font-size: 14px; min-width: 250px;"
+                               onkeyup="buscarUsuarios()">
+                    </div>
+                </div>
+                
+                <div id="usuariosList">
+                    <div class="loading-container">
+                        <div class="loading"></div>
+                        <p style="margin-top: 16px; color: #666;">Carregando usuários...</p>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <!-- Lista de Saques -->
-        <div class="saques-container" id="saquesList">
-            <div class="loading-container">
-                <div class="loading"></div>
-                <p style="margin-top: 16px; color: #666;">Carregando saques...</p>
+        <!-- SEÇÃO: APPS -->
+        <div id="secaoApps" class="section">
+            <div class="content-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <h2 style="color: #333;">📱 Gerenciamento de Apps</h2>
+                    <button class="btn-novo" onclick="abrirModalApp()">
+                        ➕ Novo App/Link
+                    </button>
+                </div>
+                
+                <div id="appsList">
+                    <div class="loading-container">
+                        <div class="loading"></div>
+                        <p style="margin-top: 16px; color: #666;">Carregando apps...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDITAR SALDO -->
+    <div class="modal-overlay" id="modalSaldo">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>💰 Editar Saldo do Usuário</h3>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Usuário</label>
+                    <input type="text" id="saldoUserNome" readonly style="background: #F3F4F6;">
+                </div>
+                <div class="input-group">
+                    <label>Saldo Atual</label>
+                    <input type="text" id="saldoAtual" readonly style="background: #F3F4F6;">
+                </div>
+                <div class="input-group">
+                    <label>Operação</label>
+                    <select id="operacaoSaldo">
+                        <option value="adicionar">➕ Adicionar Saldo</option>
+                        <option value="remover">➖ Remover Saldo</option>
+                        <option value="definir">📝 Definir Saldo Exato</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" id="valorSaldo" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="input-group">
+                    <label>Motivo/Descrição</label>
+                    <input type="text" id="motivoSaldo" placeholder="Ex: Bônus, Correção, etc">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="fecharModal('modalSaldo')">Cancelar</button>
+                <button class="btn-confirmar" onclick="confirmarAlteracaoSaldo()">Confirmar Alteração</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NOVO/EDITAR APP -->
+    <div class="modal-overlay" id="modalApp">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="tituloModalApp">📱 Novo App</h3>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="appId">
+                <div class="input-group">
+                    <label>Nome do App *</label>
+                    <input type="text" id="appNome" placeholder="Ex: TikTok, Kwai, etc">
+                </div>
+                <div class="input-group">
+                    <label>Link para Download/Redirecionamento *</label>
+                    <input type="url" id="appLink" placeholder="https://...">
+                </div>
+                <div class="input-group">
+                    <label>Recompensa (R$) *</label>
+                    <input type="number" id="appRecompensa" placeholder="0.50" step="0.01" min="0.01">
+                </div>
+                <div class="input-group">
+                    <label>Descrição/Observações</label>
+                    <input type="text" id="appDescricao" placeholder="Ex: Baixe e use por 1 minuto">
+                </div>
+                <div class="input-group">
+                    <label>Ícone (emoji ou URL)</label>
+                    <input type="text" id="appIcone" placeholder="📱 ou https://...">
+                </div>
+                <div class="toggle-container">
+                    <span>App Ativo</span>
+                    <div class="toggle active" id="appAtivo" onclick="toggleAppAtivo()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="fecharModal('modalApp')">Cancelar</button>
+                <button class="btn-confirmar" onclick="salvarApp()">Salvar App</button>
             </div>
         </div>
     </div>
@@ -654,8 +1144,14 @@
         // ==================== VARIÁVEIS GLOBAIS ====================
         let adminLogado = false;
         let todosSaques = [];
+        let todosUsuarios = [];
+        let todosApps = [];
         let filtroAtual = 'todos';
         let saquesListener = null;
+        let usuariosListener = null;
+        let appsListener = null;
+        let usuarioSelecionado = null;
+        let appEditando = null;
         
         // ==================== AUTENTICAÇÃO ====================
         function fazerLogin() {
@@ -664,7 +1160,6 @@
             const erroEl = document.getElementById('erroLogin');
             const btnLogin = document.getElementById('btnLogin');
             
-            // Loading state
             btnLogin.classList.add('loading');
             btnLogin.textContent = 'Entrando...';
             
@@ -689,9 +1184,9 @@
         function fazerLogout() {
             adminLogado = false;
             
-            if (saquesListener) {
-                database.ref('saques').off('value', saquesListener);
-            }
+            if (saquesListener) database.ref('saques').off('value', saquesListener);
+            if (usuariosListener) database.ref('usuarios').off('value', usuariosListener);
+            if (appsListener) database.ref('apps').off('value', appsListener);
             
             document.getElementById('adminSenha').value = '';
             mostrarLogin();
@@ -707,6 +1202,26 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('painelScreen').style.display = 'block';
             carregarSaques();
+            carregarUsuarios();
+            carregarApps();
+        }
+        
+        function mostrarSecao(secao) {
+            // Esconde todas as seções
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Mostra a seção selecionada
+            if (secao === 'saques') {
+                document.getElementById('secaoSaques').classList.add('active');
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            } else if (secao === 'usuarios') {
+                document.getElementById('secaoUsuarios').classList.add('active');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            } else if (secao === 'apps') {
+                document.getElementById('secaoApps').classList.add('active');
+                document.querySelectorAll('.nav-item')[2].classList.add('active');
+            }
         }
         
         // ==================== CARREGAR SAQUES ====================
@@ -721,9 +1236,7 @@
             
             const saquesRef = database.ref('saques');
             
-            if (saquesListener) {
-                saquesRef.off('value', saquesListener);
-            }
+            if (saquesListener) saquesRef.off('value', saquesListener);
             
             saquesListener = saquesRef.on('value', (snapshot) => {
                 processarDadosSaques(snapshot);
@@ -767,24 +1280,19 @@
                 }
             });
             
-            // Ordena: pendentes primeiro, depois processando, depois por data
             todosSaques.sort((a, b) => {
                 const statusA = a.status || 'PENDENTE';
                 const statusB = b.status || 'PENDENTE';
                 
-                // Pendentes primeiro
                 if (statusA === 'PENDENTE' && statusB !== 'PENDENTE') return -1;
                 if (statusA !== 'PENDENTE' && statusB === 'PENDENTE') return 1;
                 
-                // Processando depois
                 if (statusA === 'PROCESSANDO' && statusB !== 'PROCESSANDO' && statusB !== 'PENDENTE') return -1;
                 if (statusA !== 'PROCESSANDO' && statusA !== 'PENDENTE' && statusB === 'PROCESSANDO') return 1;
                 
-                // Por data (mais recente primeiro)
                 return (b.dataSolicitacao || 0) - (a.dataSolicitacao || 0);
             });
             
-            // Atualiza estatísticas
             document.getElementById('statPendentes').textContent = pendentes;
             document.getElementById('statProcessando').textContent = processando;
             document.getElementById('statConcluidos').textContent = concluidos;
@@ -794,7 +1302,6 @@
             renderizarSaques();
         }
         
-        // ==================== RENDERIZAR LISTA ====================
         function renderizarSaques() {
             const container = document.getElementById('saquesList');
             
@@ -832,7 +1339,6 @@
             const status = (saque.status || 'PENDENTE');
             const statusClass = status.toLowerCase();
             
-            // Verifica se tem estorno pendente ou aplicado
             let estornoBadge = '';
             if (status === 'REJEITADO' || status === 'CANCELADO') {
                 if (saque.estornoAplicado) {
@@ -930,7 +1436,6 @@
             `;
         }
         
-        // ==================== FILTROS ====================
         function filtrarSaques(status) {
             filtroAtual = status;
             
@@ -947,6 +1452,335 @@
             });
             
             renderizarSaques();
+        }
+        
+        // ==================== CARREGAR USUÁRIOS ====================
+        function carregarUsuarios() {
+            const container = document.getElementById('usuariosList');
+            
+            const usuariosRef = database.ref('usuarios');
+            
+            if (usuariosListener) usuariosRef.off('value', usuariosListener);
+            
+            usuariosListener = usuariosRef.on('value', (snapshot) => {
+                todosUsuarios = [];
+                snapshot.forEach((child) => {
+                    const user = child.val();
+                    user.id = child.key;
+                    todosUsuarios.push(user);
+                });
+                
+                // Ordena por nome
+                todosUsuarios.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+                
+                renderizarUsuarios();
+            });
+        }
+        
+        function renderizarUsuarios(filtro = '') {
+            const container = document.getElementById('usuariosList');
+            
+            let usuariosFiltrados = todosUsuarios;
+            if (filtro) {
+                const termo = filtro.toLowerCase();
+                usuariosFiltrados = todosUsuarios.filter(u => 
+                    (u.nome || '').toLowerCase().includes(termo) ||
+                    (u.email || '').toLowerCase().includes(termo) ||
+                    (u.telefone || '').includes(termo)
+                );
+            }
+            
+            if (usuariosFiltrados.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">👤</div>
+                        <h3>Nenhum usuário encontrado</h3>
+                        <p>${filtro ? 'Tente outro termo de busca' : 'Não há usuários cadastrados'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = usuariosFiltrados.map(user => criarCardUsuario(user)).join('');
+        }
+        
+        function criarCardUsuario(user) {
+            const saldo = user.saldo || 0;
+            const saldoClass = saldo < 0 ? 'saldo-negativo' : '';
+            
+            return `
+                <div class="user-card">
+                    <div class="user-header">
+                        <div class="user-info">
+                            <h4>${user.nome || 'Sem nome'}</h4>
+                            <p>📧 ${user.email || 'Sem email'} | 📱 ${user.telefone || 'Sem telefone'}</p>
+                            <p style="margin-top: 4px; font-size: 12px; color: #999;">ID: ${user.id}</p>
+                        </div>
+                        <div class="user-saldo ${saldoClass}">
+                            R$ ${saldo.toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn-saldo btn-adicionar" onclick="abrirModalSaldo('${user.id}', '${user.nome}', ${saldo})">
+                            ➕ Adicionar
+                        </button>
+                        <button class="btn-saldo btn-remover" onclick="abrirModalSaldo('${user.id}', '${user.nome}', ${saldo}, true)">
+                            ➖ Remover
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function buscarUsuarios() {
+            const termo = document.getElementById('buscaUsuario').value;
+            renderizarUsuarios(termo);
+        }
+        
+        // ==================== MODAL SALDO ====================
+        function abrirModalSaldo(userId, nome, saldo, remover = false) {
+            usuarioSelecionado = { id: userId, nome, saldo };
+            
+            document.getElementById('saldoUserNome').value = nome;
+            document.getElementById('saldoAtual').value = 'R$ ' + saldo.toFixed(2);
+            document.getElementById('valorSaldo').value = '';
+            document.getElementById('motivoSaldo').value = '';
+            
+            const select = document.getElementById('operacaoSaldo');
+            if (remover) {
+                select.value = 'remover';
+            } else {
+                select.value = 'adicionar';
+            }
+            
+            document.getElementById('modalSaldo').classList.add('show');
+        }
+        
+        function confirmarAlteracaoSaldo() {
+            if (!usuarioSelecionado) return;
+            
+            const operacao = document.getElementById('operacaoSaldo').value;
+            const valor = parseFloat(document.getElementById('valorSaldo').value);
+            const motivo = document.getElementById('motivoSaldo').value || 'Ajuste manual pelo admin';
+            
+            if (isNaN(valor) || valor <= 0) {
+                showToast('❌ Informe um valor válido!', 'error');
+                return;
+            }
+            
+            let novoSaldo = usuarioSelecionado.saldo;
+            let valorTransacao = 0;
+            
+            if (operacao === 'adicionar') {
+                novoSaldo += valor;
+                valorTransacao = valor;
+            } else if (operacao === 'remover') {
+                if (valor > usuarioSelecionado.saldo) {
+                    showToast('❌ Saldo insuficiente para remover!', 'error');
+                    return;
+                }
+                novoSaldo -= valor;
+                valorTransacao = -valor;
+            } else if (operacao === 'definir') {
+                valorTransacao = valor - usuarioSelecionado.saldo;
+                novoSaldo = valor;
+            }
+            
+            const agora = Date.now();
+            
+            // Atualiza saldo do usuário
+            database.ref('usuarios/' + usuarioSelecionado.id + '/saldo').set(novoSaldo)
+                .then(() => {
+                    // Registra transação
+                    return database.ref('transacoes/' + usuarioSelecionado.id).push({
+                        tipo: operacao === 'remover' ? 'DEBITO_ADMIN' : 'CREDITO_ADMIN',
+                        valor: valorTransacao,
+                        descricao: motivo,
+                        data: agora,
+                        admin: 'admin',
+                        saldoAnterior: usuarioSelecionado.saldo,
+                        saldoNovo: novoSaldo
+                    });
+                })
+                .then(() => {
+                    showToast(`✅ Saldo atualizado! Novo saldo: R$ ${novoSaldo.toFixed(2)}`, 'success');
+                    fecharModal('modalSaldo');
+                })
+                .catch((error) => {
+                    showToast('❌ Erro: ' + error.message, 'error');
+                });
+        }
+        
+        // ==================== CARREGAR APPS ====================
+        function carregarApps() {
+            const container = document.getElementById('appsList');
+            
+            const appsRef = database.ref('apps');
+            
+            if (appsListener) appsRef.off('value', appsListener);
+            
+            appsListener = appsRef.on('value', (snapshot) => {
+                todosApps = [];
+                snapshot.forEach((child) => {
+                    const app = child.val();
+                    app.id = child.key;
+                    todosApps.push(app);
+                });
+                
+                renderizarApps();
+            });
+        }
+        
+        function renderizarApps() {
+            const container = document.getElementById('appsList');
+            
+            if (todosApps.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">📱</div>
+                        <h3>Nenhum app cadastrado</h3>
+                        <p>Clique em "Novo App" para adicionar</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = todosApps.map(app => criarCardApp(app)).join('');
+        }
+        
+        function criarCardApp(app) {
+            const ativo = app.ativo !== false;
+            const opacity = ativo ? '1' : '0.6';
+            
+            return `
+                <div class="app-card" style="opacity: ${opacity};">
+                    <div class="app-header">
+                        <div class="app-info">
+                            <h4>${app.icone || '📱'} ${app.nome || 'Sem nome'}</h4>
+                            <p>${app.descricao || 'Sem descrição'}</p>
+                            <span class="status-badge ${ativo ? 'status-concluido' : 'status-rejeitado'}" 
+                                  style="margin-top: 8px; display: inline-block;">
+                                ${ativo ? '🟢 Ativo' : '🔴 Inativo'}
+                            </span>
+                        </div>
+                        <div class="app-recompensa">
+                            R$ ${(app.recompensa || 0).toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="app-link">
+                        🔗 ${app.link || 'Sem link'}
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn-acao btn-editar" onclick="editarApp('${app.id}')" style="flex: 1;">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn-excluir" onclick="excluirApp('${app.id}')">
+                            🗑️ Excluir
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ==================== MODAL APP ====================
+        function abrirModalApp() {
+            appEditando = null;
+            document.getElementById('tituloModalApp').textContent = '📱 Novo App';
+            document.getElementById('appId').value = '';
+            document.getElementById('appNome').value = '';
+            document.getElementById('appLink').value = '';
+            document.getElementById('appRecompensa').value = '';
+            document.getElementById('appDescricao').value = '';
+            document.getElementById('appIcone').value = '';
+            
+            const toggle = document.getElementById('appAtivo');
+            toggle.classList.add('active');
+            
+            document.getElementById('modalApp').classList.add('show');
+        }
+        
+        function editarApp(appId) {
+            const app = todosApps.find(a => a.id === appId);
+            if (!app) return;
+            
+            appEditando = app;
+            document.getElementById('tituloModalApp').textContent = '✏️ Editar App';
+            document.getElementById('appId').value = app.id;
+            document.getElementById('appNome').value = app.nome || '';
+            document.getElementById('appLink').value = app.link || '';
+            document.getElementById('appRecompensa').value = app.recompensa || '';
+            document.getElementById('appDescricao').value = app.descricao || '';
+            document.getElementById('appIcone').value = app.icone || '';
+            
+            const toggle = document.getElementById('appAtivo');
+            if (app.ativo !== false) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+            
+            document.getElementById('modalApp').classList.add('show');
+        }
+        
+        function toggleAppAtivo() {
+            const toggle = document.getElementById('appAtivo');
+            toggle.classList.toggle('active');
+        }
+        
+        function salvarApp() {
+            const id = document.getElementById('appId').value;
+            const nome = document.getElementById('appNome').value.trim();
+            const link = document.getElementById('appLink').value.trim();
+            const recompensa = parseFloat(document.getElementById('appRecompensa').value);
+            const descricao = document.getElementById('appDescricao').value.trim();
+            const icone = document.getElementById('appIcone').value.trim();
+            const ativo = document.getElementById('appAtivo').classList.contains('active');
+            
+            if (!nome || !link || isNaN(recompensa) || recompensa <= 0) {
+                showToast('❌ Preencha todos os campos obrigatórios!', 'error');
+                return;
+            }
+            
+            const appData = {
+                nome,
+                link,
+                recompensa,
+                descricao: descricao || 'Baixe e instale o aplicativo',
+                icone: icone || '📱',
+                ativo,
+                dataAtualizacao: Date.now()
+            };
+            
+            let promise;
+            if (id) {
+                // Editar existente
+                promise = database.ref('apps/' + id).update(appData);
+            } else {
+                // Criar novo
+                appData.dataCriacao = Date.now();
+                promise = database.ref('apps').push(appData);
+            }
+            
+            promise
+                .then(() => {
+                    showToast(id ? '✅ App atualizado!' : '✅ App criado com sucesso!', 'success');
+                    fecharModal('modalApp');
+                })
+                .catch((error) => {
+                    showToast('❌ Erro: ' + error.message, 'error');
+                });
+        }
+        
+        function excluirApp(appId) {
+            if (!confirm('🗑️ Tem certeza que deseja excluir este app?\n\nEsta ação não pode ser desfeita!')) return;
+            
+            database.ref('apps/' + appId).remove()
+                .then(() => {
+                    showToast('✅ App excluído!', 'success');
+                })
+                .catch((error) => {
+                    showToast('❌ Erro: ' + error.message, 'error');
+                });
         }
         
         // ==================== AÇÕES DE SAQUE ====================
@@ -1022,7 +1856,6 @@
             });
         }
         
-        // ==================== REJEITAR SAQUE (CORRIGIDO) ====================
         function rejeitarSaque(saqueId, userId, valor) {
             const motivo = prompt('Motivo da rejeição:');
             if (motivo === null) return;
@@ -1033,20 +1866,17 @@
             
             const agora = Date.now();
             
-            // IMPORTANTE: Agora atualiza diretamente o saque, não cria nó separado
-            // O app do usuário vai detectar pelo status REJEITADO e estornoAplicado=false
             database.ref('saques/' + saqueId).update({
                 status: 'REJEITADO',
                 dataProcessamento: agora,
                 processadoPor: 'admin',
                 motivoRejeicao: motivo || 'Não especificado',
-                estornoAplicado: false,  // <-- Importante! App vai detectar isso
+                estornoAplicado: false,
                 dataEstorno: null
             })
             .then(() => {
                 showToast('❌ Saque rejeitado! Estorno pendente.', 'success');
                 
-                // Registra transação de rejeição
                 return database.ref('transacoes/' + userId).push({
                     tipo: 'SAQUE_REJEITADO',
                     valor: -(valor || 0),
@@ -1063,6 +1893,10 @@
         }
         
         // ==================== UTILITÁRIOS ====================
+        function fecharModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+        
         function showToast(mensagem, tipo = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = mensagem;
@@ -1070,6 +1904,15 @@
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
+        
+        // Fechar modal ao clicar fora
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
         
         // Login com Enter
         document.getElementById('adminSenha')?.addEventListener('keypress', (e) => {
