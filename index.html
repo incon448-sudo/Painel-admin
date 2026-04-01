@@ -3,2671 +3,1157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#1A5F2A">
-    <title>Painel Admin - Tarefas do Pix</title>
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <title>Painel Admin - Renda Extra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f1f2f6; min-height: 100vh; }
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #F5F5F5;
-            min-height: 100vh;
+        /* Login */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
+        .login-box {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center;
+        }
+        .login-icon { font-size: 60px; color: #6c5ce7; margin-bottom: 20px; }
+        .login-title { font-size: 24px; font-weight: 700; color: #2d3436; margin-bottom: 10px; }
+        .login-input {
+            width: 100%; padding: 15px; border: 2px solid #dfe6e9; border-radius: 12px;
+            font-size: 16px; margin: 15px 0; font-family: 'Poppins', sans-serif;
+        }
+        .login-input:focus { outline: none; border-color: #6c5ce7; }
+        .btn-login {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #6c5ce7 0%, #5b4cdb 100%);
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .btn-login:hover { transform: translateY(-2px); }
+        
+        /* Admin Container */
+        #admin-container { display: none; }
         
         /* Header */
         .admin-header {
-            background: #1A5F2A;
-            color: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .admin-title { font-size: 24px; font-weight: 700; color: #2d3436; display: flex; align-items: center; gap: 10px; }
+        .admin-title i { color: #6c5ce7; }
+        .admin-actions { display: flex; gap: 15px; }
+        
+        .btn-header-admin {
+            padding: 10px 20px; background: #6c5ce7; color: white; border: none;
+            border-radius: 8px; cursor: pointer; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
             position: relative;
         }
-        
-        .admin-header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
+        .btn-header-admin:hover { background: #5b4cdb; }
+        .btn-header-admin .badge {
+            position: absolute; top: -8px; right: -8px; background: #ff6b6b; color: white;
+            font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+            min-width: 18px; text-align: center;
         }
         
-        .admin-header p {
-            opacity: 0.9;
-            font-size: 14px;
+        .btn-logout {
+            padding: 10px 20px; background: #ff6b6b; color: white; border: none;
+            border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s;
         }
+        .btn-logout:hover { background: #ee5a5a; }
         
-        .logout-btn {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
+        /* Stats */
+        .stats-section {
+            padding: 30px; display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;
         }
-        
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        /* Menu de Navegação */
-        .nav-menu {
-            background: white;
-            padding: 0 20px;
-            border-bottom: 1px solid #E0E0E0;
-            display: flex;
-            gap: 0;
-            overflow-x: auto;
-        }
-        
-        .nav-item {
-            padding: 16px 24px;
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            position: relative;
-        }
-        
-        .nav-item:hover {
-            color: #1A5F2A;
-            background: #F9FAFB;
-        }
-        
-        .nav-item.active {
-            color: #1A5F2A;
-            border-bottom-color: #1A5F2A;
-            background: #F0FDF4;
-        }
-        
-        .nav-badge {
-            background: #EF4444;
-            color: white;
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            min-width: 18px;
-            text-align: center;
-        }
-        
-        /* Stats Cards */
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
         .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: white; border-radius: 16px; padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 20px;
             transition: transform 0.2s;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-        
-        .stat-card h3 {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .stat-card .value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #1A5F2A;
-        }
-        
-        .stat-card.pendente .value { color: #F59E0B; }
-        .stat-card.processando .value { color: #3B82F6; }
-        .stat-card.concluido .value { color: #22C55E; }
-        .stat-card.rejeitado .value { color: #EF4444; }
-        
-        /* Filtros */
-        .filtros-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px 20px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .filtro-btn {
-            padding: 10px 20px;
-            border: 2px solid #E0E0E0;
-            background: white;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .filtro-btn:hover {
-            border-color: #1A5F2A;
-        }
-        
-        .filtro-btn.active {
-            background: #1A5F2A;
-            color: white;
-            border-color: #1A5F2A;
-        }
-        
-        /* Lista de Saques */
-        .saques-container, .content-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px 40px;
-        }
-        
-        .saque-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid #F59E0B;
-            transition: all 0.3s;
-        }
-        
-        .saque-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        }
-        
-        .saque-card.processando {
-            border-left-color: #3B82F6;
-        }
-        
-        .saque-card.concluido {
-            border-left-color: #22C55E;
-            opacity: 0.95;
-        }
-        
-        .saque-card.rejeitado {
-            border-left-color: #EF4444;
-            opacity: 0.9;
-        }
-        
-        .saque-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        
-        .saque-info h4 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        
-        .saque-info p {
-            font-size: 13px;
-            color: #666;
-        }
-        
-        .saque-valor {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1A5F2A;
-        }
-        
-        .saque-detalhes {
-            background: #F9FAFB;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        
-        .detalhe-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #E5E7EB;
-            font-size: 14px;
-        }
-        
-        .detalhe-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detalhe-label {
-            color: #666;
-        }
-        
-        .detalhe-value {
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .chave-pix {
-            background: #E8F5E9;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            word-break: break-all;
-        }
-        
-        /* Ações */
-        .saque-acoes {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .btn-acao {
-            flex: 1;
-            min-width: 140px;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-        
-        .btn-acao:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .btn-acao.loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        
-        .btn-processar {
-            background: #3B82F6;
-            color: white;
-        }
-        
-        .btn-processar:hover:not(:disabled) {
-            background: #2563EB;
-            transform: translateY(-1px);
-        }
-        
-        .btn-concluir {
-            background: #22C55E;
-            color: white;
-        }
-        
-        .btn-concluir:hover:not(:disabled) {
-            background: #16A34A;
-            transform: translateY(-1px);
-        }
-        
-        .btn-rejeitar {
-            background: #EF4444;
-            color: white;
-        }
-        
-        .btn-rejeitar:hover:not(:disabled) {
-            background: #DC2626;
-            transform: translateY(-1px);
-        }
-        
-        .btn-editar {
-            background: #F59E0B;
-            color: white;
-        }
-        
-        .btn-editar:hover:not(:disabled) {
-            background: #D97706;
-            transform: translateY(-1px);
-        }
-        
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .status-pendente {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-        
-        .status-processando {
-            background: #DBEAFE;
-            color: #1E40AF;
-        }
-        
-        .status-concluido {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-        
-        .status-rejeitado {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-        
-        /* Badge de Estorno */
-        .estorno-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #F0FDF4;
-            color: #166534;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .estorno-badge.pendente {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        
-        .empty-state .icone {
-            font-size: 64px;
-            margin-bottom: 16px;
-        }
-        
-        /* Loading */
-        .loading-container {
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #E0E0E0;
-            border-radius: 50%;
-            border-top-color: #1A5F2A;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-size: 14px;
-            z-index: 300;
-            opacity: 0;
-            transform: translateY(100px);
-            transition: all 0.3s;
-        }
-        
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .toast.success {
-            background: #22C55E;
-        }
-        
-        .toast.error {
-            background: #EF4444;
-        }
-        
-        /* Login Screen */
-        .login-screen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1A5F2A 0%, #0d3316 100%);
-            padding: 20px;
-        }
-        
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .login-logo {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        
-        .login-card h2 {
-            margin-bottom: 8px;
-            color: #333;
-            font-size: 24px;
-        }
-        
-        .login-card .subtitle {
-            color: #666;
-            margin-bottom: 32px;
-            font-size: 14px;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #555;
-            font-weight: 600;
-        }
-        
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #E0E0E0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #1A5F2A;
-        }
-        
-        .btn-login {
-            width: 100%;
-            padding: 18px;
-            background: #1A5F2A;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(26, 95, 42, 0.3);
-        }
-        
-        .btn-login:hover {
-            background: #134021;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(26, 95, 42, 0.4);
-        }
-        
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .btn-login.loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        
-        .erro-login {
-            background: #FEE2E2;
-            color: #DC2626;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            display: none;
-            border-left: 4px solid #DC2626;
-        }
-        
-        .erro-login.show {
-            display: block;
-        }
-        
-        .hint-box {
-            background: #F0FDF4;
-            border: 1px solid #86EFAC;
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 24px;
-            font-size: 13px;
-            color: #166534;
-        }
-        
-        .hint-box strong {
-            display: block;
-            margin-bottom: 4px;
-        }
-        
-        /* Seções do Painel */
-        .section {
-            display: none;
-        }
-        
-        .section.active {
-            display: block;
-        }
-        
-        /* Cards de Usuários */
-        .user-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-        }
-        
-        .user-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        }
-        
-        .user-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .user-info h4 {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        
-        .user-info p {
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .user-saldo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1A5F2A;
-        }
-        
-        .saldo-negativo {
-            color: #EF4444;
-        }
-        
-        .user-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .btn-saldo {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s;
-        }
-        
-        .btn-adicionar {
-            background: #22C55E;
-            color: white;
-        }
-        
-        .btn-adicionar:hover {
-            background: #16A34A;
-        }
-        
-        .btn-remover {
-            background: #EF4444;
-            color: white;
-        }
-        
-        .btn-remover:hover {
-            background: #DC2626;
-        }
-        
-        /* Modal */
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-icon-box {
+            width: 60px; height: 60px; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center; font-size: 28px;
+        }
+        .stat-icon-box.blue { background: #e3f2fd; color: #2196f3; }
+        .stat-icon-box.green { background: #e8f5e9; color: #4caf50; }
+        .stat-icon-box.orange { background: #fff3e0; color: #ff9800; }
+        .stat-icon-box.red { background: #ffebee; color: #f44336; }
+        .stat-icon-box.purple { background: #f3e5f5; color: #9c27b0; }
+        .stat-info h3 { font-size: 28px; font-weight: 700; color: #2d3436; }
+        .stat-info p { color: #636e72; font-size: 14px; }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 30px 30px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;
+        }
+        
+        /* Section Cards */
+        .section-card {
+            background: white; border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden;
+        }
+        .section-header {
+            padding: 20px 25px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;
+        }
+        .section-header h2 {
+            font-size: 18px; font-weight: 600; color: #2d3436;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .badge {
+            background: #6c5ce7; color: white; padding: 4px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .section-content { max-height: 500px; overflow-y: auto; }
+        
+        /* Items */
+        .item-card {
+            padding: 20px 25px; border-bottom: 1px solid #f1f2f6;
+            display: flex; align-items: center; gap: 15px; transition: background 0.2s;
+        }
+        .item-card:hover { background: #f8f9fa; }
+        .item-avatar {
+            width: 50px; height: 50px; border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 20px; font-weight: 700; flex-shrink: 0;
+        }
+        .item-info { flex: 1; }
+        .item-title {
+            font-weight: 600; color: #2d3436; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .item-meta { font-size: 12px; color: #636e72; }
+        .item-value {
+            font-size: 18px; font-weight: 700; color: #00b894; margin-right: 15px;
+        }
+        .item-actions { display: flex; gap: 8px; }
+        
+        .btn-action {
+            width: 36px; height: 36px; border-radius: 8px; border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-approve { background: #00b894; color: white; }
+        .btn-approve:hover { background: #00a085; }
+        .btn-reject { background: #ff6b6b; color: white; }
+        .btn-reject:hover { background: #ee5a5a; }
+        .btn-view { background: #6c5ce7; color: white; }
+        .btn-view:hover { background: #5b4cdb; }
+        .btn-edit { background: #ffd93d; color: #2d3436; }
+        .btn-edit:hover { background: #f4d03f; }
+        .btn-delete { background: #e17055; color: white; }
+        .btn-delete:hover { background: #d63031; }
+        
+        .status-label {
+            padding: 4px 10px; border-radius: 20px; font-size: 11px;
+            font-weight: 600; text-transform: uppercase;
+        }
+        .status-pendente { background: #fff3e0; color: #ff9800; }
+        .status-aprovado { background: #e8f5e9; color: #4caf50; }
+        .status-rejeitado { background: #ffebee; color: #f44336; }
+        .status-ativa { background: #e8f5e9; color: #4caf50; }
+        .status-inativa { background: #ffebee; color: #f44336; }
+        
+        /* Botão Nova Tarefa */
+        .btn-nova-tarefa {
+            padding: 8px 16px; background: #00b894; color: white; border: none;
+            border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; gap: 5px; transition: all 0.2s;
+        }
+        .btn-nova-tarefa:hover { background: #00a085; transform: scale(1.05); }
+        
+        /* Modal de Tarefa (Add/Edit) */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 10000;
+            display: none; justify-content: center; align-items: center;
             padding: 20px;
         }
+        .modal-overlay.active { display: flex; }
         
-        .modal-overlay.show {
-            display: flex;
+        .modal-content {
+            background: white; border-radius: 20px; padding: 30px;
+            max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
+            animation: modalSlide 0.3s ease;
         }
         
-        .modal {
-            background: white;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid #E0E0E0;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px;
+        }
+        .modal-header h2 {
+            font-size: 22px; font-weight: 700; color: #2d3436;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .btn-close-modal {
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: #f1f2f6; color: #636e72; cursor: pointer;
+            font-size: 20px; transition: all 0.2s;
+        }
+        .btn-close-modal:hover { background: #e17055; color: white; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; font-weight: 600; color: #2d3436;
+            margin-bottom: 8px; font-size: 14px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 12px 15px; border: 2px solid #e9ecef;
+            border-radius: 10px; font-size: 14px; font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none; border-color: #6c5ce7;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .checkbox-group {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px; background: #f8f9fa; border-radius: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 20px; height: 20px; accent-color: #6c5ce7;
         }
         
-        .modal-header h3 {
-            font-size: 20px;
-            color: #333;
-        }
-        
-        .modal-body {
-            padding: 24px;
-        }
-        
-        .modal-footer {
-            padding: 20px 24px;
-            border-top: 1px solid #E0E0E0;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-        
-        .btn-cancelar {
-            padding: 12px 24px;
-            border: 2px solid #E0E0E0;
-            background: white;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
+        .btn-salvar {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #6c5ce7 0%, #5b4cdb 100%);
+            color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
             transition: all 0.3s;
         }
+        .btn-salvar:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,92,231,0.4); }
         
-        .btn-cancelar:hover {
-            border-color: #999;
+        /* Chat Overlay */
+        .chat-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; justify-content: center; align-items: center; padding: 20px;
         }
+        .chat-overlay.active { display: flex; }
         
-        .btn-confirmar {
-            padding: 12px 24px;
-            border: none;
-            background: #1A5F2A;
-            color: white;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-confirmar:hover {
-            background: #134021;
-        }
-        
-        /* Apps/Links */
-        .app-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid #3B82F6;
-        }
-        
-        .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 12px;
-        }
-        
-        .app-info h4 {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        
-        .app-info p {
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .app-recompensa {
-            font-size: 20px;
-            font-weight: bold;
-            color: #1A5F2A;
-        }
-        
-        .app-link {
-            background: #F3F4F6;
-            padding: 12px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 13px;
-            word-break: break-all;
-            color: #374151;
-            margin: 12px 0;
-        }
-        
-        .btn-novo {
-            background: #1A5F2A;
-            color: white;
-            padding: 16px 24px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 24px;
-            transition: all 0.3s;
-        }
-        
-        .btn-novo:hover {
-            background: #134021;
-            transform: translateY(-2px);
-        }
-        
-        .btn-excluir {
-            background: #FEE2E2;
-            color: #DC2626;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-excluir:hover {
-            background: #FECACA;
-        }
-        
-        /* Toggle Switch */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        
-        .toggle {
-            position: relative;
-            width: 50px;
-            height: 26px;
-            background: #E5E7EB;
-            border-radius: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .toggle.active {
-            background: #22C55E;
-        }
-        
-        .toggle-slider {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .toggle.active .toggle-slider {
-            transform: translateX(24px);
-        }
-        
-        /* ==================== CHAT ADMIN STYLES ==================== */
-        .chat-admin-container {
-            display: flex;
-            height: calc(100vh - 140px);
-            max-width: 1400px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
+        .chat-container {
+            width: 100%; max-width: 900px; height: 80vh; background: white;
+            border-radius: 20px; display: flex; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
         .chat-sidebar {
-            width: 350px;
-            background: #F9FAFB;
-            border-right: 1px solid #E5E7EB;
-            display: flex;
-            flex-direction: column;
+            width: 300px; background: #f8f9fa; border-right: 1px solid #e9ecef;
+            display: flex; flex-direction: column;
         }
-        
         .chat-sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #E5E7EB;
-            background: white;
+            padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
         }
-        
-        .chat-sidebar-header h3 {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 12px;
+        .chat-sidebar-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .chat-search { padding: 15px; border-bottom: 1px solid #e9ecef; }
+        .chat-search input {
+            width: 100%; padding: 10px 15px; border: 2px solid #e9ecef;
+            border-radius: 20px; font-size: 14px; font-family: 'Poppins', sans-serif;
         }
+        .chat-list { flex: 1; overflow-y: auto; }
         
-        .chat-filtro {
-            display: flex;
-            gap: 8px;
+        .chat-item {
+            padding: 15px 20px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: all 0.2s; border-bottom: 1px solid #f1f2f6;
         }
+        .chat-item:hover, .chat-item.active { background: #f0e6ff; }
+        .chat-item.unread { background: #fff3e0; }
         
-        .chat-filtro-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #E5E7EB;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        
-        .chat-filtro-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        
-        .chat-rooms-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-        
-        .chat-room-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid #E5E7EB;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .chat-room-item:hover {
-            background: #F3F4F6;
-        }
-        
-        .chat-room-item.active {
-            background: #EEF2FF;
-            border-left: 4px solid #667eea;
-        }
-        
-        .chat-room-item.nao-lida {
-            background: #FEF3C7;
-        }
-        
-        .chat-room-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
+        .chat-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 16px;
+        }
+        .chat-preview { flex: 1; min-width: 0; }
+        .chat-name {
+            font-weight: 600; color: #2d3436; margin-bottom: 3px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .chat-last-msg { font-size: 13px; color: #636e72; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-meta { text-align: right; }
+        .chat-time { font-size: 11px; color: #b2bec3; margin-bottom: 5px; }
+        .chat-badge {
+            background: #ff6b6b; color: white; font-size: 11px; font-weight: 700;
+            padding: 2px 6px; border-radius: 10px; min-width: 18px; display: inline-block; text-align: center;
         }
         
-        .chat-room-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .chat-room-name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .chat-room-preview {
-            font-size: 13px;
-            color: #666;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .chat-room-meta {
-            text-align: right;
-            flex-shrink: 0;
-        }
-        
-        .chat-room-time {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 4px;
-        }
-        
-        .chat-room-badge {
-            background: #EF4444;
-            color: white;
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            min-width: 18px;
-            text-align: center;
-            display: inline-block;
-        }
-        
-        .chat-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
+        .chat-main { flex: 1; display: flex; flex-direction: column; }
         .chat-main-header {
-            padding: 20px;
-            background: white;
-            border-bottom: 1px solid #E5E7EB;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e9ecef;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        
-        .chat-main-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .chat-user-info { display: flex; align-items: center; gap: 12px; }
+        .chat-user-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;
         }
-        
-        .chat-main-info {
-            flex: 1;
+        .chat-user-details h4 { color: #2d3436; margin-bottom: 3px; }
+        .chat-user-details p { font-size: 13px; color: #636e72; }
+        .btn-close-chat-admin {
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: transparent; color: #636e72; cursor: pointer; font-size: 20px;
         }
-        
-        .chat-main-info h4 {
-            font-size: 16px;
-            color: #333;
-        }
-        
-        .chat-main-info p {
-            font-size: 13px;
-            color: #666;
-        }
-        
-        .chat-main-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #22C55E;
-        }
-        
-        .status-online {
-            width: 8px;
-            height: 8px;
-            background: #22C55E;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        .btn-close-chat-admin:hover { background: #f1f2f6; color: #2d3436; }
         
         .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #F8F9FA;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            flex: 1; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px; background: #f8f9fa;
         }
-        
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
+        .message {
+            max-width: 70%; padding: 12px 16px; border-radius: 20px;
+            font-size: 14px; line-height: 1.4; animation: fadeIn 0.3s ease;
         }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
-        
-        .chat-message {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.4;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease-out;
-        }
-        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        .chat-message.received {
-            align-self: flex-start;
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        .message-received {
+            align-self: flex-start; background: white; color: #2d3436;
+            border-bottom-left-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
-        
-        .chat-message.sent {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
+        .message-sent {
+            align-self: flex-end; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border-bottom-right-radius: 5px;
         }
-        
-        .chat-message-time {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-top: 4px;
-        }
-        
-        .chat-message.sent .chat-message-time {
-            color: rgba(255,255,255,0.8);
-        }
+        .message-time { font-size: 11px; opacity: 0.7; margin-top: 5px; }
+        .message-sender { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
         
         .chat-input-area {
-            padding: 16px 20px;
-            background: white;
-            border-top: 1px solid #E5E7EB;
-            display: flex;
-            gap: 12px;
-            align-items: center;
+            padding: 20px; background: white; border-top: 1px solid #e9ecef;
+            display: flex; gap: 10px; align-items: center;
         }
-        
         .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #E5E7EB;
-            border-radius: 24px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
+            flex: 1; padding: 12px 20px; border: 2px solid #e9ecef;
+            border-radius: 25px; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none;
+        }
+        .chat-input:focus { border-color: #6c5ce7; }
+        .btn-send-admin {
+            padding: 12px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none; border-radius: 25px; color: white; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-send-admin:hover { transform: scale(1.05); }
+        
+        .empty-chat {
+            flex: 1; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; color: #b2bec3; text-align: center; padding: 40px;
+        }
+        .empty-chat i { font-size: 80px; margin-bottom: 20px; }
+        
+        /* Image Modal */
+        .image-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 10000;
+            display: flex; justify-content: center; align-items: center; padding: 20px;
+        }
+        .image-modal-content { max-width: 90%; max-height: 90%; position: relative; }
+        .image-modal-content img { max-width: 100%; max-height: 80vh; border-radius: 10px; }
+        .image-modal-close {
+            position: absolute; top: -40px; right: 0; color: white;
+            font-size: 30px; cursor: pointer; background: none; border: none;
         }
         
-        .chat-input:focus {
-            border-color: #667eea;
+        /* Empty State */
+        .empty-state { padding: 60px 20px; text-align: center; color: #b2bec3; }
+        .empty-state i { font-size: 60px; margin-bottom: 20px; }
+        
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; padding: 16px 24px;
+            border-radius: 12px; color: white; font-weight: 600;
+            z-index: 99999; animation: slideUp 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .toast.success { background: linear-gradient(135deg, #00b894 0%, #00a085 100%); }
+        .toast.error { background: linear-gradient(135deg, #e17055 0%, #d63031 100%); }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        .btn-chat-enviar {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            flex-shrink: 0;
+        /* Filtros */
+        .filters {
+            padding: 15px 25px; background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef; display: flex; gap: 10px; flex-wrap: wrap;
         }
-        
-        .btn-chat-enviar:hover {
-            transform: scale(1.05);
+        .filter-btn {
+            padding: 8px 16px; border: 2px solid #dfe6e9; background: white;
+            border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500;
         }
-        
-        .btn-chat-enviar:active {
-            transform: scale(0.95);
-        }
-        
-        .chat-empty {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .chat-empty-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-        }
-        
-        .chat-empty h3 {
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .typing-indicator {
-            display: none;
-            align-self: flex-start;
-            background: white;
-            padding: 12px 16px;
-            border-radius: 16px;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        
-        .typing-indicator.active {
-            display: flex;
-            gap: 4px;
-        }
-        
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #CBD5E1;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        
-        .typing-dot:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-        
-        .typing-dot:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
-        .system-message {
-            align-self: center;
-            background: #E5E7EB;
-            color: #666;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            text-align: center;
-            max-width: 90%;
-        }
-        
-        /* Responsivo */
-        @media (max-width: 768px) {
-            .stats-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .saque-header, .user-header, .app-header {
-                flex-direction: column;
-            }
-            
-            .saque-acoes, .user-actions {
-                flex-direction: column;
-            }
-            
-            .login-card {
-                padding: 32px 24px;
-            }
-            
-            .nav-item {
-                padding: 12px 16px;
-                font-size: 13px;
-            }
-            
-            .chat-admin-container {
-                flex-direction: column;
-                height: calc(100vh - 120px);
-                margin: 10px;
-            }
-            
-            .chat-sidebar {
-                width: 100%;
-                height: 40%;
-                border-right: none;
-                border-bottom: 1px solid #E5E7EB;
-            }
-            
-            .chat-main {
-                height: 60%;
-            }
-        }
+        .filter-btn:hover, .filter-btn.active { border-color: #6c5ce7; background: #6c5ce7; color: white; }
     </style>
 </head>
 <body>
-
-    <!-- TELA DE LOGIN -->
-    <div id="loginScreen" class="login-screen">
-        <div class="login-card">
-            <div class="login-logo">🔐</div>
-            <h2>Painel Administrativo</h2>
-            <p class="subtitle">Tarefas do Pix - Gerenciamento Completo</p>
-            
-            <div class="erro-login" id="erroLogin"></div>
-            
-            <div class="input-group">
-                <label>👤 Usuário Admin</label>
-                <input type="text" id="adminUser" placeholder="admin" value="admin">
-            </div>
-            
-            <div class="input-group">
-                <label>🔑 Senha</label>
-                <input type="password" id="adminSenha" placeholder="admin123" value="admin123">
-            </div>
-            
-            <button class="btn-login" onclick="fazerLogin()" id="btnLogin">Entrar no Painel</button>
-            
-            <div class="hint-box">
-                <strong>💡 Credenciais Padrão:</strong>
-                Usuário: admin | Senha: admin123
-            </div>
+    <!-- Login -->
+    <div id="login-screen">
+        <div class="login-box">
+            <div class="login-icon"><i class="fas fa-shield-alt"></i></div>
+            <h1 class="login-title">Painel Administrativo</h1>
+            <p style="color: #636e72; margin-bottom: 20px;">Digite a senha para acessar</p>
+            <input type="password" id="admin-password" class="login-input" placeholder="Senha" onkeypress="if(event.key==='Enter')fazerLogin()">
+            <button class="btn-login" onclick="fazerLogin()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+            <p id="login-error" style="color: #ff6b6b; margin-top: 15px; display: none;"><i class="fas fa-exclamation-triangle"></i> Senha incorreta!</p>
         </div>
     </div>
 
-    <!-- PAINEL PRINCIPAL -->
-    <div id="painelScreen" style="display: none;">
-        <div class="admin-header" style="position: relative;">
-            <h1>💰 Painel Administrativo</h1>
-            <p>Gerencie saques, saldos, tarefas e suporte</p>
-            <button class="logout-btn" onclick="fazerLogout()">Sair</button>
-        </div>
-        
-        <!-- Menu de Navegação -->
-        <div class="nav-menu">
-            <button class="nav-item active" onclick="mostrarSecao('saques')">
-                💸 Saques
-            </button>
-            <button class="nav-item" onclick="mostrarSecao('usuarios')">
-                👥 Usuários & Saldo
-            </button>
-            <button class="nav-item" onclick="mostrarSecao('apps')">
-                📱 Apps & Links
-            </button>
-            <button class="nav-item" onclick="mostrarSecao('chat')" id="navChat">
-                💬 Chat Suporte
-                <span class="nav-badge" id="navChatBadge" style="display: none;">0</span>
-            </button>
-        </div>
-        
-        <!-- SEÇÃO: SAQUES -->
-        <div id="secaoSaques" class="section active">
-            <!-- Estatísticas -->
-            <div class="stats-container">
-                <div class="stat-card pendente">
-                    <h3>⏳ Pendentes</h3>
-                    <div class="value" id="statPendentes">0</div>
-                </div>
-                <div class="stat-card processando">
-                    <h3>⚙️ Processando</h3>
-                    <div class="value" id="statProcessando">0</div>
-                </div>
-                <div class="stat-card concluido">
-                    <h3>✅ Concluídos</h3>
-                    <div class="value" id="statConcluidos">0</div>
-                </div>
-                <div class="stat-card rejeitado">
-                    <h3>❌ Rejeitados</h3>
-                    <div class="value" id="statRejeitados">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>💵 Total Pendente</h3>
-                    <div class="value" id="statTotal">R$ 0</div>
-                </div>
-            </div>
-            
-            <!-- Filtros -->
-            <div class="filtros-container">
-                <button class="filtro-btn active" onclick="filtrarSaques('todos')">Todos</button>
-                <button class="filtro-btn" onclick="filtrarSaques('PENDENTE')">⏳ Pendentes</button>
-                <button class="filtro-btn" onclick="filtrarSaques('PROCESSANDO')">⚙️ Processando</button>
-                <button class="filtro-btn" onclick="filtrarSaques('CONCLUIDO')">✅ Concluídos</button>
-                <button class="filtro-btn" onclick="filtrarSaques('REJEITADO')">❌ Rejeitados</button>
-            </div>
-            
-            <!-- Lista de Saques -->
-            <div class="saques-container" id="saquesList">
-                <div class="loading-container">
-                    <div class="loading"></div>
-                    <p style="margin-top: 16px; color: #666;">Carregando saques...</p>
-                </div>
+    <!-- Admin Container -->
+    <div id="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="admin-title"><i class="fas fa-cog"></i> Painel de Controle</div>
+            <div class="admin-actions">
+                <button class="btn-header-admin" onclick="abrirChatAdmin()">
+                    <i class="fas fa-comments"></i> Mensagens
+                    <span class="badge" id="chat-badge-admin" style="display: none;">0</span>
+                </button>
+                <button class="btn-logout" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </div>
         </div>
-        
-        <!-- SEÇÃO: USUÁRIOS -->
-        <div id="secaoUsuarios" class="section">
-            <div class="content-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-                    <h2 style="color: #333;">👥 Gerenciamento de Usuários</h2>
-                    <div style="display: flex; gap: 12px;">
-                        <input type="text" id="buscaUsuario" placeholder="🔍 Buscar usuário..." 
-                               style="padding: 12px 16px; border: 2px solid #E0E0E0; border-radius: 10px; font-size: 14px; min-width: 250px;"
-                               onkeyup="buscarUsuarios()">
-                    </div>
-                </div>
-                
-                <div id="usuariosList">
-                    <div class="loading-container">
-                        <div class="loading"></div>
-                        <p style="margin-top: 16px; color: #666;">Carregando usuários...</p>
-                    </div>
-                </div>
+
+        <!-- Stats -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon-box blue"><i class="fas fa-users"></i></div>
+                <div class="stat-info"><h3 id="total-usuarios">0</h3><p>Usuários</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon-box orange"><i class="fas fa-clock"></i></div>
+                <div class="stat-info"><h3 id="tarefas-pendentes">0</h3><p>Tarefas Pendentes</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon-box green"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="stat-info"><h3 id="saques-pendentes">0</h3><p>Saques Pendentes</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon-box purple"><i class="fas fa-comments"></i></div>
+                <div class="stat-info"><h3 id="mensagens-nao-lidas">0</h3><p>Mensagens Novas</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon-box red"><i class="fas fa-wallet"></i></div>
+                <div class="stat-info"><h3 id="total-pago">R$ 0,00</h3><p>Total Pago</p></div>
             </div>
         </div>
-        
-        <!-- SEÇÃO: APPS -->
-        <div id="secaoApps" class="section">
-            <div class="content-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-                    <h2 style="color: #333;">📱 Gerenciamento de Apps</h2>
-                    <button class="btn-novo" onclick="abrirModalApp()">
-                        ➕ Novo App/Link
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Gerenciamento de Tarefas -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks"></i> Gerenciar Tarefas</h2>
+                    <button class="btn-nova-tarefa" onclick="abrirModalTarefa()">
+                        <i class="fas fa-plus"></i> Nova Tarefa
                     </button>
                 </div>
-                
-                <div id="appsList">
-                    <div class="loading-container">
-                        <div class="loading"></div>
-                        <p style="margin-top: 16px; color: #666;">Carregando apps...</p>
-                    </div>
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filtrarTarefasSistema('todas')">Todas</button>
+                    <button class="filter-btn" onclick="filtrarTarefasSistema('ativas')">Ativas</button>
+                    <button class="filter-btn" onclick="filtrarTarefasSistema('inativas')">Inativas</button>
+                </div>
+                <div class="section-content" id="lista-tarefas-sistema">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div>
                 </div>
             </div>
-        </div>
-        
-        <!-- SEÇÃO: CHAT SUPORTE -->
-        <div id="secaoChat" class="section">
-            <div class="chat-admin-container">
-                <!-- Sidebar com lista de conversas -->
-                <div class="chat-sidebar">
-                    <div class="chat-sidebar-header">
-                        <h3>💬 Conversas</h3>
-                        <div class="chat-filtro">
-                            <button class="chat-filtro-btn active" onclick="filtrarChats('todos')">Todos</button>
-                            <button class="chat-filtro-btn" onclick="filtrarChats('nao-lidos')">Não Lidos</button>
-                            <button class="chat-filtro-btn" onclick="filtrarChats('aguardando')">Aguardando</button>
-                        </div>
-                    </div>
-                    <div class="chat-rooms-list" id="chatRoomsList">
-                        <!-- Lista de salas será preenchida aqui -->
-                    </div>
+
+            <!-- Tarefas Pendentes -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class="fas fa-check-circle"></i> Tarefas para Aprovar</h2>
+                    <span class="badge" id="badge-tarefas">0</span>
                 </div>
-                
-                <!-- Área principal do chat -->
-                <div class="chat-main" id="chatMain">
-                    <div class="chat-empty">
-                        <div class="chat-empty-icon">💬</div>
-                        <h3>Selecione uma conversa</h3>
-                        <p>Escolha um usuário na lista ao lado para iniciar o atendimento</p>
-                    </div>
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filtrarTarefas('todos')">Todos</button>
+                    <button class="filter-btn" onclick="filtrarTarefas('pendente')">Pendentes</button>
+                    <button class="filter-btn" onclick="filtrarTarefas('aprovado')">Aprovados</button>
                 </div>
+                <div class="section-content" id="lista-tarefas"><div class="empty-state"><i class="fas fa-inbox"></i><p>Carregando...</p></div></div>
+            </div>
+
+            <!-- Saques Pendentes -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2><i class="fas fa-hand-holding-usd"></i> Saques para Processar</h2>
+                    <span class="badge" id="badge-saques">0</span>
+                </div>
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filtrarSaques('todos')">Todos</button>
+                    <button class="filter-btn" onclick="filtrarSaques('pendente')">Pendentes</button>
+                    <button class="filter-btn" onclick="filtrarSaques('pago')">Pagos</button>
+                </div>
+                <div class="section-content" id="lista-saques"><div class="empty-state"><i class="fas fa-inbox"></i><p>Carregando...</p></div></div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: EDITAR SALDO -->
-    <div class="modal-overlay" id="modalSaldo">
-        <div class="modal">
+    <!-- Modal de Tarefa (Add/Edit) -->
+    <div id="modal-tarefa" class="modal-overlay">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>💰 Editar Saldo do Usuário</h3>
+                <h2><i class="fas fa-tasks"></i> <span id="modal-tarefa-titulo">Nova Tarefa</span></h2>
+                <button class="btn-close-modal" onclick="fecharModalTarefa()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>Usuário</label>
-                    <input type="text" id="saldoUserNome" readonly style="background: #F3F4F6;">
+            
+            <input type="hidden" id="tarefa-id">
+            
+            <div class="form-group">
+                <label>Título da Tarefa</label>
+                <input type="text" id="tarefa-titulo" placeholder="Ex: Assistir Vídeo">
+            </div>
+            
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="tarefa-descricao" placeholder="Ex: Assista um vídeo de 30 segundos"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" id="tarefa-valor" step="0.01" placeholder="0.50">
                 </div>
-                <div class="input-group">
-                    <label>Saldo Atual</label>
-                    <input type="text" id="saldoAtual" readonly style="background: #F3F4F6;">
+                <div class="form-group">
+                    <label>Ícone (emoji)</label>
+                    <input type="text" id="tarefa-icone" placeholder="🎬" maxlength="2">
                 </div>
-                <div class="input-group">
-                    <label>Operação</label>
-                    <select id="operacaoSaldo">
-                        <option value="adicionar">➕ Adicionar Saldo</option>
-                        <option value="remover">➖ Remover Saldo</option>
-                        <option value="definir">📝 Definir Saldo Exato</option>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cor</label>
+                    <select id="tarefa-cor">
+                        <option value="#ff6b6b">Vermelho</option>
+                        <option value="#4ecdc4">Turquesa</option>
+                        <option value="#ffe66d">Amarelo</option>
+                        <option value="#a8e6cf">Verde</option>
+                        <option value="#c7ceea">Roxo</option>
+                        <option value="#ffd93d">Dourado</option>
+                        <option value="#6c5ce7">Índigo</option>
+                        <option value="#fd79a8">Rosa</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label>Valor (R$)</label>
-                    <input type="number" id="valorSaldo" placeholder="0.00" step="0.01" min="0">
-                </div>
-                <div class="input-group">
-                    <label>Motivo/Descrição</label>
-                    <input type="text" id="motivoSaldo" placeholder="Ex: Bônus, Correção, etc">
+                <div class="form-group">
+                    <label>Ordem</label>
+                    <input type="number" id="tarefa-ordem" placeholder="1">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn-cancelar" onclick="fecharModal('modalSaldo')">Cancelar</button>
-                <button class="btn-confirmar" onclick="confirmarAlteracaoSaldo()">Confirmar Alteração</button>
+            
+            <div class="form-group">
+                <label>Link (opcional)</label>
+                <input type="url" id="tarefa-link" placeholder="https://...">
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="tarefa-ativa" checked>
+                    <label for="tarefa-ativa" style="margin: 0;">Tarefa ativa (visível para usuários)</label>
+                </div>
+            </div>
+            
+            <button class="btn-salvar" onclick="salvarTarefa()">
+                <i class="fas fa-save"></i> Salvar Tarefa
+            </button>
+        </div>
+    </div>
+
+    <!-- Chat Overlay -->
+    <div id="chat-overlay" class="chat-overlay">
+        <div class="chat-container">
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    <div class="chat-sidebar-title"><i class="fas fa-headset"></i> Central de Atendimento</div>
+                </div>
+                <div class="chat-search">
+                    <input type="text" id="chat-search" placeholder="Buscar usuário..." oninput="filtrarConversas(this.value)">
+                </div>
+                <div id="chat-list" class="chat-list"></div>
+            </div>
+            <div class="chat-main" id="chat-main">
+                <div class="empty-chat">
+                    <i class="fas fa-comments"></i>
+                    <h3>Selecione uma conversa</h3>
+                    <p>Escolha um usuário na lista para iniciar o atendimento</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: NOVO/EDITAR APP -->
-    <div class="modal-overlay" id="modalApp">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="tituloModalApp">📱 Novo App</h3>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="appId">
-                <div class="input-group">
-                    <label>Nome do App *</label>
-                    <input type="text" id="appNome" placeholder="Ex: TikTok, Kwai, etc">
-                </div>
-                <div class="input-group">
-                    <label>Link para Download/Redirecionamento *</label>
-                    <input type="url" id="appLink" placeholder="https://...">
-                </div>
-                <div class="input-group">
-                    <label>Recompensa (R$) *</label>
-                    <input type="number" id="appRecompensa" placeholder="0.50" step="0.01" min="0.01">
-                </div>
-                <div class="input-group">
-                    <label>Descrição/Observações</label>
-                    <input type="text" id="appDescricao" placeholder="Ex: Baixe e use por 1 minuto">
-                </div>
-                <div class="input-group">
-                    <label>Ícone (emoji ou URL)</label>
-                    <input type="text" id="appIcone" placeholder="📱 ou https://...">
-                </div>
-                <div class="toggle-container">
-                    <span>App Ativo</span>
-                    <div class="toggle active" id="appAtivo" onclick="toggleAppAtivo()">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancelar" onclick="fecharModal('modalApp')">Cancelar</button>
-                <button class="btn-confirmar" onclick="salvarApp()">Salvar App</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST -->
-    <div id="toast" class="toast"></div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
     <script>
-        // ==================== CONFIGURAÇÃO FIREBASE ====================
+        // Config Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyBUI_gg3WisOWvOfCPM3rrKogrZNLJ-WUE",
-            authDomain: "tarefas-do-pix.firebaseapp.com",
-            databaseURL: "https://tarefas-do-pix-default-rtdb.firebaseio.com",
-            projectId: "tarefas-do-pix",
-            storageBucket: "tarefas-do-pix.firebasestorage.app",
-            messagingSenderId: "236400248524",
-            appId: "1:236400248524:web:62bd73e6da2c07504fa469"
+            apiKey: "AIzaSyChdKpWC0g4W2kFM8m2E7f6v9X8w2w3w4w",
+            authDomain: "renda-extra-app.firebaseapp.com",
+            projectId: "renda-extra-app",
+            storageBucket: "renda-extra-app.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abc123def456"
         };
-        
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const db = firebase.firestore();
         
-        // ==================== CONFIGURAÇÃO ADMIN ====================
-        const ADMIN_CREDENTIALS = {
-            username: 'admin',
-            password: 'admin123'
-        };
-        
-        // ==================== VARIÁVEIS GLOBAIS ====================
-        let adminLogado = false;
-        let todosSaques = [];
-        let todosUsuarios = [];
-        let todosApps = [];
-        let filtroAtual = 'todos';
-        let saquesListener = null;
-        let usuariosListener = null;
-        let appsListener = null;
-        let usuarioSelecionado = null;
-        let appEditando = null;
-        
-        // CHAT VARIABLES
-        let chatRooms = [];
-        let chatRoomsListener = null;
-        let mensagensListener = null;
-        let salaAtual = null;
-        let filtroChat = 'todos';
-        let totalNaoLidas = 0;
-        
-        // ==================== AUTENTICAÇÃO ====================
+        const ADMIN_PASSWORD = 'admin123';
+        let filtroTarefas = 'todos', filtroSaques = 'todos', filtroTarefasSistema = 'todas';
+        let conversaAtual = null, chatListenerAtual = null, totalMensagensNaoLidas = 0;
+        let tarefaEditando = null;
+
+        // Login
         function fazerLogin() {
-            const user = document.getElementById('adminUser').value.trim();
-            const senha = document.getElementById('adminSenha').value.trim();
-            const erroEl = document.getElementById('erroLogin');
-            const btnLogin = document.getElementById('btnLogin');
-            
-            btnLogin.classList.add('loading');
-            btnLogin.textContent = 'Entrando...';
-            
-            if (user === ADMIN_CREDENTIALS.username && senha === ADMIN_CREDENTIALS.password) {
-                adminLogado = true;
-                setTimeout(() => {
-                    mostrarPainel();
-                    erroEl.classList.remove('show');
-                    btnLogin.classList.remove('loading');
-                    btnLogin.textContent = 'Entrar no Painel';
-                }, 500);
+            if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-container').style.display = 'block';
+                sessionStorage.setItem('admin_logado', 'true');
+                carregarEstatisticas();
+                carregarTarefasSistema();
+                carregarTarefas();
+                carregarSaques();
+                iniciarListeners();
+                iniciarListenerChat();
             } else {
-                setTimeout(() => {
-                    erroEl.textContent = '❌ Usuário ou senha incorretos. Use: admin / admin123';
-                    erroEl.classList.add('show');
-                    btnLogin.classList.remove('loading');
-                    btnLogin.textContent = 'Entrar no Painel';
-                }, 500);
+                document.getElementById('login-error').style.display = 'block';
+                setTimeout(() => document.getElementById('login-error').style.display = 'none', 3000);
             }
         }
-        
+
         function fazerLogout() {
-            adminLogado = false;
-            
-            if (saquesListener) database.ref('saques').off('value', saquesListener);
-            if (usuariosListener) database.ref('usuarios').off('value', usuariosListener);
-            if (appsListener) database.ref('apps').off('value', appsListener);
-            if (chatRoomsListener) database.ref('chats').off('value', chatRoomsListener);
-            if (mensagensListener && salaAtual) database.ref('chats/' + salaAtual.id + '/mensagens').off('child_added', mensagensListener);
-            
-            document.getElementById('adminSenha').value = '';
-            mostrarLogin();
+            sessionStorage.removeItem('admin_logado');
+            location.reload();
         }
-        
-        // ==================== NAVEGAÇÃO ====================
-        function mostrarLogin() {
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('painelScreen').style.display = 'none';
-        }
-        
-        function mostrarPainel() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('painelScreen').style.display = 'block';
+
+        if (sessionStorage.getItem('admin_logado') === 'true') {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-container').style.display = 'block';
+            carregarEstatisticas();
+            carregarTarefasSistema();
+            carregarTarefas();
             carregarSaques();
-            carregarUsuarios();
-            carregarApps();
-            inicializarChatListener();
+            iniciarListeners();
+            iniciarListenerChat();
         }
-        
-        function mostrarSecao(secao) {
-            // Esconde todas as seções
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            // Mostra a seção selecionada
-            if (secao === 'saques') {
-                document.getElementById('secaoSaques').classList.add('active');
-                document.querySelectorAll('.nav-item')[0].classList.add('active');
-            } else if (secao === 'usuarios') {
-                document.getElementById('secaoUsuarios').classList.add('active');
-                document.querySelectorAll('.nav-item')[1].classList.add('active');
-            } else if (secao === 'apps') {
-                document.getElementById('secaoApps').classList.add('active');
-                document.querySelectorAll('.nav-item')[2].classList.add('active');
-            } else if (secao === 'chat') {
-                document.getElementById('secaoChat').classList.add('active');
-                document.querySelectorAll('.nav-item')[3].classList.add('active');
-                renderizarListaSalas();
-            }
+
+        // Estatísticas
+        async function carregarEstatisticas() {
+            try {
+                const users = await db.collection('anonymous_users').get();
+                document.getElementById('total-usuarios').textContent = users.size;
+                
+                const tarefasPend = await db.collection('tarefas_pendentes').where('status', '==', 'pendente').get();
+                document.getElementById('tarefas-pendentes').textContent = tarefasPend.size;
+                document.getElementById('badge-tarefas').textContent = tarefasPend.size;
+                
+                const saquesPend = await db.collection('saques_pendentes').where('status', '==', 'pendente').get();
+                document.getElementById('saques-pendentes').textContent = saquesPend.size;
+                document.getElementById('badge-saques').textContent = saquesPend.size;
+                
+                const tarefasAprov = await db.collection('tarefas_pendentes').where('status', '==', 'aprovado').get();
+                const saquesPagos = await db.collection('saques_pendentes').where('status', '==', 'pago').get();
+                
+                let totalPago = 0;
+                tarefasAprov.forEach(d => totalPago += d.data().valor || 0);
+                saquesPagos.forEach(d => totalPago += d.data().valor || 0);
+                document.getElementById('total-pago').textContent = `R$ ${totalPago.toFixed(2)}`;
+            } catch(e) { console.error(e); }
         }
-        
-        // ==================== CARREGAR SAQUES ====================
-        function carregarSaques() {
-            const container = document.getElementById('saquesList');
-            container.innerHTML = `
-                <div class="loading-container">
-                    <div class="loading"></div>
-                    <p style="margin-top: 16px; color: #666;">Carregando saques...</p>
-                </div>
-            `;
+
+        // ============================================
+        // GERENCIAMENTO DE TAREFAS DO SISTEMA
+        // ============================================
+        function abrirModalTarefa(tarefa = null) {
+            tarefaEditando = tarefa;
+            document.getElementById('modal-tarefa').classList.add('active');
+            document.getElementById('modal-tarefa-titulo').textContent = tarefa ? 'Editar Tarefa' : 'Nova Tarefa';
             
-            const saquesRef = database.ref('saques');
-            
-            if (saquesListener) saquesRef.off('value', saquesListener);
-            
-            saquesListener = saquesRef.on('value', (snapshot) => {
-                processarDadosSaques(snapshot);
-            }, (error) => {
-                console.error('Erro ao carregar saques:', error);
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icone">❌</div>
-                        <h3>Erro ao carregar dados</h3>
-                        <p>Verifique a conexão com o Firebase</p>
-                    </div>
-                `;
-            });
-        }
-        
-        function processarDadosSaques(snapshot) {
-            todosSaques = [];
-            let pendentes = 0;
-            let processando = 0;
-            let concluidos = 0;
-            let rejeitados = 0;
-            let totalValor = 0;
-            
-            snapshot.forEach((child) => {
-                const saque = child.val();
-                saque.id = child.key;
-                todosSaques.push(saque);
-                
-                const status = saque.status || 'PENDENTE';
-                
-                if (status === 'PENDENTE') {
-                    pendentes++;
-                    totalValor += saque.valor || 0;
-                } else if (status === 'PROCESSANDO') {
-                    processando++;
-                    totalValor += saque.valor || 0;
-                } else if (status === 'CONCLUIDO' || status === 'COMPLETO') {
-                    concluidos++;
-                } else if (status === 'REJEITADO' || status === 'CANCELADO') {
-                    rejeitados++;
-                }
-            });
-            
-            todosSaques.sort((a, b) => {
-                const statusA = a.status || 'PENDENTE';
-                const statusB = b.status || 'PENDENTE';
-                
-                if (statusA === 'PENDENTE' && statusB !== 'PENDENTE') return -1;
-                if (statusA !== 'PENDENTE' && statusB === 'PENDENTE') return 1;
-                
-                if (statusA === 'PROCESSANDO' && statusB !== 'PROCESSANDO' && statusB !== 'PENDENTE') return -1;
-                if (statusA !== 'PROCESSANDO' && statusA !== 'PENDENTE' && statusB === 'PROCESSANDO') return 1;
-                
-                return (b.dataSolicitacao || 0) - (a.dataSolicitacao || 0);
-            });
-            
-            document.getElementById('statPendentes').textContent = pendentes;
-            document.getElementById('statProcessando').textContent = processando;
-            document.getElementById('statConcluidos').textContent = concluidos;
-            document.getElementById('statRejeitados').textContent = rejeitados;
-            document.getElementById('statTotal').textContent = 'R$ ' + totalValor.toFixed(2);
-            
-            renderizarSaques();
-        }
-        
-        function renderizarSaques() {
-            const container = document.getElementById('saquesList');
-            
-            let saquesFiltrados = todosSaques;
-            if (filtroAtual !== 'todos') {
-                if (filtroAtual === 'CONCLUIDO') {
-                    saquesFiltrados = todosSaques.filter(s => 
-                        s.status === 'CONCLUIDO' || s.status === 'COMPLETO'
-                    );
-                } else if (filtroAtual === 'REJEITADO') {
-                    saquesFiltrados = todosSaques.filter(s => 
-                        s.status === 'REJEITADO' || s.status === 'CANCELADO'
-                    );
-                } else {
-                    saquesFiltrados = todosSaques.filter(s => s.status === filtroAtual);
-                }
-            }
-            
-            if (saquesFiltrados.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icone">📭</div>
-                        <h3>Nenhum saque encontrado</h3>
-                        <p>Não há saques ${filtroAtual === 'todos' ? '' : 'com este status'} no momento.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = saquesFiltrados.map(saque => criarCardSaque(saque)).join('');
-        }
-        
-        function criarCardSaque(saque) {
-            const data = saque.dataSolicitacao ? new Date(saque.dataSolicitacao).toLocaleString('pt-BR') : 'Data não disponível';
-            const status = (saque.status || 'PENDENTE');
-            const statusClass = status.toLowerCase();
-            
-            let estornoBadge = '';
-            if (status === 'REJEITADO' || status === 'CANCELADO') {
-                if (saque.estornoAplicado) {
-                    estornoBadge = `<span class="estorno-badge">💰 Estornado</span>`;
-                } else {
-                    estornoBadge = `<span class="estorno-badge pendente">⏳ Estorno Pendente</span>`;
-                }
-            }
-            
-            let botoes = '';
-            
-            if (status === 'PENDENTE') {
-                botoes = `
-                    <div class="saque-acoes">
-                        <button class="btn-acao btn-processar" onclick="processarSaque('${saque.id}')" id="btnProc_${saque.id}">
-                            ⚙️ Marcar Processando
-                        </button>
-                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})" id="btnRej_${saque.id}">
-                            ❌ Rejeitar
-                        </button>
-                    </div>
-                `;
-            } else if (status === 'PROCESSANDO') {
-                botoes = `
-                    <div class="saque-acoes">
-                        <button class="btn-acao btn-concluir" onclick="concluirSaque('${saque.id}', '${saque.userId}', ${saque.valor})" id="btnConc_${saque.id}">
-                            ✅ Concluir Saque
-                        </button>
-                        <button class="btn-acao btn-rejeitar" onclick="rejeitarSaque('${saque.id}', '${saque.userId}', ${saque.valor})" id="btnRej_${saque.id}">
-                            ❌ Rejeitar
-                        </button>
-                    </div>
-                `;
+            if (tarefa) {
+                document.getElementById('tarefa-id').value = tarefa.id;
+                document.getElementById('tarefa-titulo').value = tarefa.titulo;
+                document.getElementById('tarefa-descricao').value = tarefa.descricao;
+                document.getElementById('tarefa-valor').value = tarefa.valor;
+                document.getElementById('tarefa-icone').value = tarefa.icone;
+                document.getElementById('tarefa-cor').value = tarefa.cor;
+                document.getElementById('tarefa-ordem').value = tarefa.ordem;
+                document.getElementById('tarefa-link').value = tarefa.link || '';
+                document.getElementById('tarefa-ativa').checked = tarefa.ativa;
             } else {
-                const dataFinal = saque.dataProcessamento || saque.dataConclusao;
-                const dataStr = dataFinal ? new Date(dataFinal).toLocaleString('pt-BR') : '-';
-                botoes = `
-                    <div class="saque-acoes">
-                        <button class="btn-acao" disabled style="background: #E0E0E0; color: #666;">
-                            ${status === 'CONCLUIDO' || status === 'COMPLETO' ? '✅ Concluído' : '❌ Rejeitado'} 
-                            em ${dataStr}
-                        </button>
-                    </div>
-                `;
+                document.getElementById('tarefa-id').value = '';
+                document.getElementById('tarefa-titulo').value = '';
+                document.getElementById('tarefa-descricao').value = '';
+                document.getElementById('tarefa-valor').value = '';
+                document.getElementById('tarefa-icone').value = '📱';
+                document.getElementById('tarefa-cor').value = '#6c5ce7';
+                document.getElementById('tarefa-ordem').value = '1';
+                document.getElementById('tarefa-link').value = '';
+                document.getElementById('tarefa-ativa').checked = true;
+            }
+        }
+
+        function fecharModalTarefa() {
+            document.getElementById('modal-tarefa').classList.remove('active');
+            tarefaEditando = null;
+        }
+
+        async function salvarTarefa() {
+            const dados = {
+                titulo: document.getElementById('tarefa-titulo').value.trim(),
+                descricao: document.getElementById('tarefa-descricao').value.trim(),
+                valor: parseFloat(document.getElementById('tarefa-valor').value) || 0,
+                icone: document.getElementById('tarefa-icone').value || '📱',
+                cor: document.getElementById('tarefa-cor').value,
+                ordem: parseInt(document.getElementById('tarefa-ordem').value) || 1,
+                link: document.getElementById('tarefa-link').value.trim(),
+                ativa: document.getElementById('tarefa-ativa').checked,
+                data_atualizacao: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            if (!dados.titulo || !dados.descricao || dados.valor <= 0) {
+                mostrarToast('Preencha todos os campos obrigatórios!', 'error');
+                return;
             }
             
-            return `
-                <div class="saque-card ${statusClass}">
-                    <div class="saque-header">
-                        <div class="saque-info">
-                            <h4>${saque.nome || 'Usuário não identificado'} ${estornoBadge}</h4>
-                            <p>${saque.email || 'Email não disponível'}</p>
-                            <span class="status-badge status-${statusClass}">${status}</span>
-                        </div>
-                        <div class="saque-valor">R$ ${(saque.valor || 0).toFixed(2)}</div>
-                    </div>
-                    
-                    <div class="saque-detalhes">
-                        <div class="detalhe-row">
-                            <span class="detalhe-label">Tipo de Chave:</span>
-                            <span class="detalhe-value">${saque.tipoChavePix || 'CPF'}</span>
-                        </div>
-                        <div class="detalhe-row">
-                            <span class="detalhe-label">Chave Pix:</span>
-                            <span class="detalhe-value chave-pix">${saque.chavePix || '-'}</span>
-                        </div>
-                        <div class="detalhe-row">
-                            <span class="detalhe-label">Solicitado em:</span>
-                            <span class="detalhe-value">${data}</span>
-                        </div>
-                        ${saque.motivoRejeicao ? `
-                        <div class="detalhe-row">
-                            <span class="detalhe-label">Motivo Rejeição:</span>
-                            <span class="detalhe-value" style="color: #EF4444;">${saque.motivoRejeicao}</span>
-                        </div>
-                        ` : ''}
-                        ${saque.codigoTransacao ? `
-                        <div class="detalhe-row">
-                            <span class="detalhe-label">Código Transação:</span>
-                            <span class="detalhe-value" style="font-family: monospace;">${saque.codigoTransacao}</span>
-                        </div>
-                        ` : ''}
-                        ${saque.estornoAplicado ? `
-                        <div class="detalhe-row">
-                            <span class="detalhe-label">💰 Estorno Aplicado:</span>
-                            <span class="detalhe-value" style="color: #22C55E;">
-                                ${new Date(saque.dataEstorno).toLocaleString('pt-BR')}
-                            </span>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    ${botoes}
-                </div>
-            `;
-        }
-        
-        function filtrarSaques(status) {
-            filtroAtual = status;
-            
-            document.querySelectorAll('.filtro-btn').forEach(btn => {
-                btn.classList.remove('active');
-                const btnText = btn.textContent.toLowerCase();
-                if ((status === 'todos' && btnText.includes('todos')) ||
-                    (status === 'PENDENTE' && btnText.includes('pendentes')) ||
-                    (status === 'PROCESSANDO' && btnText.includes('processando')) ||
-                    (status === 'CONCLUIDO' && btnText.includes('concluídos')) ||
-                    (status === 'REJEITADO' && btnText.includes('rejeitados'))) {
-                    btn.classList.add('active');
+            try {
+                const id = document.getElementById('tarefa-id').value;
+                
+                if (id) {
+                    await db.collection('tarefas_sistema').doc(id).update(dados);
+                    mostrarToast('✅ Tarefa atualizada!', 'success');
+                } else {
+                    dados.data_criacao = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('tarefas_sistema').add(dados);
+                    mostrarToast('✅ Tarefa criada!', 'success');
                 }
-            });
-            
-            renderizarSaques();
-        }
-        
-        // ==================== CARREGAR USUÁRIOS ====================
-        function carregarUsuarios() {
-            const container = document.getElementById('usuariosList');
-            
-            const usuariosRef = database.ref('usuarios');
-            
-            if (usuariosListener) usuariosRef.off('value', usuariosListener);
-            
-            usuariosListener = usuariosRef.on('value', (snapshot) => {
-                todosUsuarios = [];
-                snapshot.forEach((child) => {
-                    const user = child.val();
-                    user.id = child.key;
-                    todosUsuarios.push(user);
-                });
                 
-                // Ordena por nome
-                todosUsuarios.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+                fecharModalTarefa();
+                carregarTarefasSistema();
+            } catch (error) {
+                console.error(error);
+                mostrarToast('Erro ao salvar', 'error');
+            }
+        }
+
+        async function carregarTarefasSistema() {
+            try {
+                let query = db.collection('tarefas_sistema').orderBy('ordem', 'asc');
+                if (filtroTarefasSistema === 'ativas') query = query.where('ativa', '==', true);
+                if (filtroTarefasSistema === 'inativas') query = query.where('ativa', '==', false);
                 
-                renderizarUsuarios();
-            });
-        }
-        
-        function renderizarUsuarios(filtro = '') {
-            const container = document.getElementById('usuariosList');
-            
-            let usuariosFiltrados = todosUsuarios;
-            if (filtro) {
-                const termo = filtro.toLowerCase();
-                usuariosFiltrados = todosUsuarios.filter(u => 
-                    (u.nome || '').toLowerCase().includes(termo) ||
-                    (u.email || '').toLowerCase().includes(termo) ||
-                    (u.telefone || '').includes(termo)
-                );
-            }
-            
-            if (usuariosFiltrados.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icone">👤</div>
-                        <h3>Nenhum usuário encontrado</h3>
-                        <p>${filtro ? 'Tente outro termo de busca' : 'Não há usuários cadastrados'}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = usuariosFiltrados.map(user => criarCardUsuario(user)).join('');
-        }
-        
-        function criarCardUsuario(user) {
-            const saldo = user.saldo || 0;
-            const saldoClass = saldo < 0 ? 'saldo-negativo' : '';
-            
-            return `
-                <div class="user-card">
-                    <div class="user-header">
-                        <div class="user-info">
-                            <h4>${user.nome || 'Sem nome'}</h4>
-                            <p>📧 ${user.email || 'Sem email'} | 📱 ${user.telefone || 'Sem telefone'}</p>
-                            <p style="margin-top: 4px; font-size: 12px; color: #999;">ID: ${user.id}</p>
-                        </div>
-                        <div class="user-saldo ${saldoClass}">
-                            R$ ${saldo.toFixed(2)}
-                        </div>
-                    </div>
-                    <div class="user-actions">
-                        <button class="btn-saldo btn-adicionar" onclick="abrirModalSaldo('${user.id}', '${user.nome}', ${saldo})">
-                            ➕ Adicionar
-                        </button>
-                        <button class="btn-saldo btn-remover" onclick="abrirModalSaldo('${user.id}', '${user.nome}', ${saldo}, true)">
-                            ➖ Remover
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function buscarUsuarios() {
-            const termo = document.getElementById('buscaUsuario').value;
-            renderizarUsuarios(termo);
-        }
-        
-        // ==================== MODAL SALDO ====================
-        function abrirModalSaldo(userId, nome, saldo, remover = false) {
-            usuarioSelecionado = { id: userId, nome, saldo };
-            
-            document.getElementById('saldoUserNome').value = nome;
-            document.getElementById('saldoAtual').value = 'R$ ' + saldo.toFixed(2);
-            document.getElementById('valorSaldo').value = '';
-            document.getElementById('motivoSaldo').value = '';
-            
-            const select = document.getElementById('operacaoSaldo');
-            if (remover) {
-                select.value = 'remover';
-            } else {
-                select.value = 'adicionar';
-            }
-            
-            document.getElementById('modalSaldo').classList.add('show');
-        }
-        
-        function confirmarAlteracaoSaldo() {
-            if (!usuarioSelecionado) return;
-            
-            const operacao = document.getElementById('operacaoSaldo').value;
-            const valor = parseFloat(document.getElementById('valorSaldo').value);
-            const motivo = document.getElementById('motivoSaldo').value || 'Ajuste manual pelo admin';
-            
-            if (isNaN(valor) || valor <= 0) {
-                showToast('❌ Informe um valor válido!', 'error');
-                return;
-            }
-            
-            let novoSaldo = usuarioSelecionado.saldo;
-            let valorTransacao = 0;
-            
-            if (operacao === 'adicionar') {
-                novoSaldo += valor;
-                valorTransacao = valor;
-            } else if (operacao === 'remover') {
-                if (valor > usuarioSelecionado.saldo) {
-                    showToast('❌ Saldo insuficiente para remover!', 'error');
+                const snapshot = await query.get();
+                const container = document.getElementById('lista-tarefas-sistema');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-tasks"></i><p>Nenhuma tarefa cadastrada</p></div>';
                     return;
                 }
-                novoSaldo -= valor;
-                valorTransacao = -valor;
-            } else if (operacao === 'definir') {
-                valorTransacao = valor - usuarioSelecionado.saldo;
-                novoSaldo = valor;
-            }
-            
-            const agora = Date.now();
-            
-            // Atualiza saldo do usuário
-            database.ref('usuarios/' + usuarioSelecionado.id + '/saldo').set(novoSaldo)
-                .then(() => {
-                    // Registra transação
-                    return database.ref('transacoes/' + usuarioSelecionado.id).push({
-                        tipo: operacao === 'remover' ? 'DEBITO_ADMIN' : 'CREDITO_ADMIN',
-                        valor: valorTransacao,
-                        descricao: motivo,
-                        data: agora,
-                        admin: 'admin',
-                        saldoAnterior: usuarioSelecionado.saldo,
-                        saldoNovo: novoSaldo
-                    });
-                })
-                .then(() => {
-                    showToast(`✅ Saldo atualizado! Novo saldo: R$ ${novoSaldo.toFixed(2)}`, 'success');
-                    fecharModal('modalSaldo');
-                })
-                .catch((error) => {
-                    showToast('❌ Erro: ' + error.message, 'error');
-                });
-        }
-        
-        // ==================== CARREGAR APPS ====================
-        function carregarApps() {
-            const container = document.getElementById('appsList');
-            
-            const appsRef = database.ref('apps');
-            
-            if (appsListener) appsRef.off('value', appsListener);
-            
-            appsListener = appsRef.on('value', (snapshot) => {
-                todosApps = [];
-                snapshot.forEach((child) => {
-                    const app = child.val();
-                    app.id = child.key;
-                    todosApps.push(app);
-                });
                 
-                renderizarApps();
-            });
-        }
-        
-        function renderizarApps() {
-            const container = document.getElementById('appsList');
-            
-            if (todosApps.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icone">📱</div>
-                        <h3>Nenhum app cadastrado</h3>
-                        <p>Clique em "Novo App" para adicionar</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = todosApps.map(app => criarCardApp(app)).join('');
-        }
-        
-        function criarCardApp(app) {
-            const ativo = app.ativo !== false;
-            const opacity = ativo ? '1' : '0.6';
-            
-            return `
-                <div class="app-card" style="opacity: ${opacity};">
-                    <div class="app-header">
-                        <div class="app-info">
-                            <h4>${app.icone || '📱'} ${app.nome || 'Sem nome'}</h4>
-                            <p>${app.descricao || 'Sem descrição'}</p>
-                            <span class="status-badge ${ativo ? 'status-concluido' : 'status-rejeitado'}" 
-                                  style="margin-top: 8px; display: inline-block;">
-                                ${ativo ? '🟢 Ativo' : '🔴 Inativo'}
-                            </span>
+                snapshot.forEach(doc => {
+                    const t = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'item-card';
+                    item.innerHTML = `
+                        <div class="item-avatar" style="background: ${t.cor}20; color: ${t.cor};">${t.icone}</div>
+                        <div class="item-info">
+                            <div class="item-title">
+                                ${t.titulo}
+                                <span class="status-label status-${t.ativa ? 'ativa' : 'inativa'}">${t.ativa ? 'Ativa' : 'Inativa'}</span>
+                            </div>
+                            <div class="item-meta">R$ ${t.valor.toFixed(2)} | Ordem: ${t.ordem}</div>
                         </div>
-                        <div class="app-recompensa">
-                            R$ ${(app.recompensa || 0).toFixed(2)}
+                        <div class="item-actions">
+                            <button class="btn-action btn-edit" onclick='abrirModalTarefa(${JSON.stringify({id: doc.id, ...t})})' title="Editar"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action btn-delete" onclick="excluirTarefa('${doc.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
                         </div>
-                    </div>
-                    <div class="app-link">
-                        🔗 ${app.link || 'Sem link'}
-                    </div>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn-acao btn-editar" onclick="editarApp('${app.id}')" style="flex: 1;">
-                            ✏️ Editar
-                        </button>
-                        <button class="btn-excluir" onclick="excluirApp('${app.id}')">
-                            🗑️ Excluir
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ==================== MODAL APP ====================
-        function abrirModalApp() {
-            appEditando = null;
-            document.getElementById('tituloModalApp').textContent = '📱 Novo App';
-            document.getElementById('appId').value = '';
-            document.getElementById('appNome').value = '';
-            document.getElementById('appLink').value = '';
-            document.getElementById('appRecompensa').value = '';
-            document.getElementById('appDescricao').value = '';
-            document.getElementById('appIcone').value = '';
-            
-            const toggle = document.getElementById('appAtivo');
-            toggle.classList.add('active');
-            
-            document.getElementById('modalApp').classList.add('show');
-        }
-        
-        function editarApp(appId) {
-            const app = todosApps.find(a => a.id === appId);
-            if (!app) return;
-            
-            appEditando = app;
-            document.getElementById('tituloModalApp').textContent = '✏️ Editar App';
-            document.getElementById('appId').value = app.id;
-            document.getElementById('appNome').value = app.nome || '';
-            document.getElementById('appLink').value = app.link || '';
-            document.getElementById('appRecompensa').value = app.recompensa || '';
-            document.getElementById('appDescricao').value = app.descricao || '';
-            document.getElementById('appIcone').value = app.icone || '';
-            
-            const toggle = document.getElementById('appAtivo');
-            if (app.ativo !== false) {
-                toggle.classList.add('active');
-            } else {
-                toggle.classList.remove('active');
-            }
-            
-            document.getElementById('modalApp').classList.add('show');
-        }
-        
-        function toggleAppAtivo() {
-            const toggle = document.getElementById('appAtivo');
-            toggle.classList.toggle('active');
-        }
-        
-        function salvarApp() {
-            const id = document.getElementById('appId').value;
-            const nome = document.getElementById('appNome').value.trim();
-            const link = document.getElementById('appLink').value.trim();
-            const recompensa = parseFloat(document.getElementById('appRecompensa').value);
-            const descricao = document.getElementById('appDescricao').value.trim();
-            const icone = document.getElementById('appIcone').value.trim();
-            const ativo = document.getElementById('appAtivo').classList.contains('active');
-            
-            if (!nome || !link || isNaN(recompensa) || recompensa <= 0) {
-                showToast('❌ Preencha todos os campos obrigatórios!', 'error');
-                return;
-            }
-            
-            const appData = {
-                nome,
-                link,
-                recompensa,
-                descricao: descricao || 'Baixe e instale o aplicativo',
-                icone: icone || '📱',
-                ativo,
-                dataAtualizacao: Date.now()
-            };
-            
-            let promise;
-            if (id) {
-                // Editar existente
-                promise = database.ref('apps/' + id).update(appData);
-            } else {
-                // Criar novo
-                appData.dataCriacao = Date.now();
-                promise = database.ref('apps').push(appData);
-            }
-            
-            promise
-                .then(() => {
-                    showToast(id ? '✅ App atualizado!' : '✅ App criado com sucesso!', 'success');
-                    fecharModal('modalApp');
-                })
-                .catch((error) => {
-                    showToast('❌ Erro: ' + error.message, 'error');
+                    `;
+                    container.appendChild(item);
                 });
+            } catch(e) { console.error(e); }
         }
-        
-        function excluirApp(appId) {
-            if (!confirm('🗑️ Tem certeza que deseja excluir este app?\n\nEsta ação não pode ser desfeita!')) return;
-            
-            database.ref('apps/' + appId).remove()
-                .then(() => {
-                    showToast('✅ App excluído!', 'success');
-                })
-                .catch((error) => {
-                    showToast('❌ Erro: ' + error.message, 'error');
-                });
-        }
-        
-        // ==================== AÇÕES DE SAQUE ====================
-        function setButtonLoading(btnId, loading) {
-            const btn = document.getElementById(btnId);
-            if (btn) {
-                if (loading) {
-                    btn.classList.add('loading');
-                    btn.dataset.originalText = btn.innerHTML;
-                    btn.innerHTML = '<span class="loading" style="width: 16px; height: 16px; border-width: 2px;"></span> Processando...';
-                } else {
-                    btn.classList.remove('loading');
-                    if (btn.dataset.originalText) {
-                        btn.innerHTML = btn.dataset.originalText;
-                    }
-                }
+
+        async function excluirTarefa(id) {
+            if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+            try {
+                await db.collection('tarefas_sistema').doc(id).delete();
+                mostrarToast('🗑️ Tarefa excluída', 'success');
+                carregarTarefasSistema();
+            } catch(e) {
+                mostrarToast('Erro ao excluir', 'error');
             }
         }
-        
-        function processarSaque(saqueId) {
-            if (!confirm('⚙️ Marcar este saque como EM PROCESSAMENTO?')) return;
-            
-            setButtonLoading('btnProc_' + saqueId, true);
-            
-            const agora = Date.now();
-            
-            database.ref('saques/' + saqueId).update({
-                status: 'PROCESSANDO',
-                dataProcessamento: agora,
-                processadoPor: 'admin'
-            })
-            .then(() => {
-                showToast('⚙️ Saque em processamento!', 'success');
-            })
-            .catch((error) => {
-                showToast('❌ Erro: ' + error.message, 'error');
-                setButtonLoading('btnProc_' + saqueId, false);
-            });
+
+        function filtrarTarefasSistema(filtro) {
+            filtroTarefasSistema = filtro;
+            document.querySelectorAll('.section-card:first-child .filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            carregarTarefasSistema();
         }
-        
-        function concluirSaque(saqueId, userId, valor) {
-            const codigoTransacao = prompt('Digite o código da transação Pix (opcional):');
-            if (codigoTransacao === null) return;
-            
-            if (!confirm('✅ Confirmar conclusão do saque?\n\nValor: R$ ' + (valor || 0).toFixed(2))) return;
-            
-            setButtonLoading('btnConc_' + saqueId, true);
-            
-            const agora = Date.now();
-            
-            database.ref('saques/' + saqueId).update({
-                status: 'CONCLUIDO',
-                dataConclusao: agora,
-                dataProcessamento: agora,
-                processadoPor: 'admin',
-                codigoTransacao: codigoTransacao || null
-            })
-            .then(() => {
-                showToast('✅ Saque concluído com sucesso!', 'success');
+
+        // ============================================
+        // TAREFAS PENDENTES (aprovação)
+        // ============================================
+        async function carregarTarefas() {
+            try {
+                let query = db.collection('tarefas_pendentes').orderBy('data_envio', 'desc');
+                if (filtroTarefas !== 'todos') query = query.where('status', '==', filtroTarefas);
                 
-                return database.ref('transacoes/' + userId).push({
-                    tipo: 'SAQUE_CONCLUIDO',
-                    valor: -(valor || 0),
-                    descricao: 'Saque concluído via Pix',
-                    data: agora,
-                    saqueId: saqueId,
-                    codigoTransacao: codigoTransacao || null
-                });
-            })
-            .catch((error) => {
-                showToast('❌ Erro: ' + error.message, 'error');
-                setButtonLoading('btnConc_' + saqueId, false);
-            });
-        }
-        
-        function rejeitarSaque(saqueId, userId, valor) {
-            const motivo = prompt('Motivo da rejeição:');
-            if (motivo === null) return;
-            
-            if (!confirm('❌ Rejeitar saque de R$ ' + (valor || 0).toFixed(2) + '?\n\nO valor será devolvido automaticamente ao saldo do usuário quando ele abrir o app.')) return;
-            
-            setButtonLoading('btnRej_' + saqueId, true);
-            
-            const agora = Date.now();
-            
-            database.ref('saques/' + saqueId).update({
-                status: 'REJEITADO',
-                dataProcessamento: agora,
-                processadoPor: 'admin',
-                motivoRejeicao: motivo || 'Não especificado',
-                estornoAplicado: false,
-                dataEstorno: null
-            })
-            .then(() => {
-                showToast('❌ Saque rejeitado! Estorno pendente.', 'success');
+                const snapshot = await query.get();
+                const container = document.getElementById('lista-tarefas');
+                container.innerHTML = '';
                 
-                return database.ref('transacoes/' + userId).push({
-                    tipo: 'SAQUE_REJEITADO',
-                    valor: -(valor || 0),
-                    descricao: 'Saque rejeitado - aguardando estorno',
-                    data: agora,
-                    saqueId: saqueId,
-                    motivo: motivo || 'Não especificado'
-                });
-            })
-            .catch((error) => {
-                showToast('❌ Erro: ' + error.message, 'error');
-                setButtonLoading('btnRej_' + saqueId, false);
-            });
-        }
-        
-        // ==================== CHAT SUPORTE FUNCTIONS ====================
-        function inicializarChatListener() {
-            // Listener para todas as salas de chat
-            chatRoomsListener = database.ref('chats').on('value', (snapshot) => {
-                chatRooms = [];
-                totalNaoLidas = 0;
-                
-                snapshot.forEach((child) => {
-                    const sala = child.val();
-                    sala.id = child.key;
-                    
-                    // Conta mensagens não lidas do usuário
-                    let naoLidas = 0;
-                    if (sala.mensagens) {
-                        Object.values(sala.mensagens).forEach(msg => {
-                            if (msg.remetente === 'usuario' && !msg.lida) {
-                                naoLidas++;
-                            }
-                        });
-                    }
-                    
-                    sala.naoLidas = naoLidas;
-                    totalNaoLidas += naoLidas;
-                    
-                    chatRooms.push(sala);
-                });
-                
-                // Ordena: primeiro as com mensagens não lidas, depois por última atualização
-                chatRooms.sort((a, b) => {
-                    if (a.naoLidas > 0 && b.naoLidas === 0) return -1;
-                    if (a.naoLidas === 0 && b.naoLidas > 0) return 1;
-                    return (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0);
-                });
-                
-                // Atualiza badge no menu
-                const badge = document.getElementById('navChatBadge');
-                if (totalNaoLidas > 0) {
-                    badge.textContent = totalNaoLidas > 99 ? '99+' : totalNaoLidas;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Nenhuma tarefa</p></div>';
+                    return;
                 }
                 
-                // Se estiver na tela de chat, atualiza a lista
-                if (document.getElementById('secaoChat').classList.contains('active')) {
-                    renderizarListaSalas();
-                }
-            });
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const date = d.data_envio ? new Date(d.data_envio.toDate()).toLocaleString('pt-BR') : '';
+                    const item = document.createElement('div');
+                    item.className = 'item-card';
+                    item.innerHTML = `
+                        <div class="item-avatar"><i class="fas fa-user"></i></div>
+                        <div class="item-info">
+                            <div class="item-title">${d.tarefa_nome || 'Tarefa'} <span class="status-label status-${d.status}">${d.status}</span></div>
+                            <div class="item-meta"><i class="fas fa-user"></i> ${d.user_id?.substring(0,20)}... | ${date}</div>
+                        </div>
+                        <div class="item-value">+R$ ${(d.valor||0).toFixed(2)}</div>
+                        <div class="item-actions">
+                            ${d.foto_url ? `<button class="btn-action btn-view" onclick="verImagem('${d.foto_url}')" title="Ver"><i class="fas fa-image"></i></button>` : ''}
+                            ${d.status === 'pendente' ? `
+                                <button class="btn-action btn-approve" onclick="aprovarTarefa('${doc.id}')" title="Aprovar"><i class="fas fa-check"></i></button>
+                                <button class="btn-action btn-reject" onclick="rejeitarTarefa('${doc.id}')" title="Rejeitar"><i class="fas fa-times"></i></button>
+                            ` : ''}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch(e) { console.error(e); }
         }
-        
-        function filtrarChats(filtro) {
-            filtroChat = filtro;
-            
-            document.querySelectorAll('.chat-filtro-btn').forEach(btn => {
-                btn.classList.remove('active');
-                const text = btn.textContent.toLowerCase();
-                if ((filtro === 'todos' && text.includes('todos')) ||
-                    (filtro === 'nao-lidos' && text.includes('não')) ||
-                    (filtro === 'aguardando' && text.includes('aguardando'))) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            renderizarListaSalas();
-        }
-        
-        function renderizarListaSalas() {
-            const container = document.getElementById('chatRoomsList');
-            
-            let salasFiltradas = chatRooms;
-            
-            if (filtroChat === 'nao-lidos') {
-                salasFiltradas = chatRooms.filter(s => s.naoLidas > 0);
-            } else if (filtroChat === 'aguardando') {
-                salasFiltradas = chatRooms.filter(s => s.status === 'aguardando_resposta');
-            }
-            
-            if (salasFiltradas.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="padding: 40px 20px;">
-                        <div class="icone">💬</div>
-                        <h3>Nenhuma conversa</h3>
-                        <p>${filtroChat === 'nao-lidos' ? 'Não há mensagens não lidas' : 'Aguardando novas mensagens...'}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = salasFiltradas.map(sala => {
-                const hora = sala.ultimaAtualizacao ? 
-                    new Date(sala.ultimaAtualizacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}) : '';
-                const isActive = salaAtual && salaAtual.id === sala.id;
-                const isNaoLida = sala.naoLidas > 0 && !isActive;
-                const preview = sala.ultimaMensagem ? 
-                    (sala.ultimaMensagem.length > 30 ? sala.ultimaMensagem.substring(0, 30) + '...' : sala.ultimaMensagem) 
-                    : 'Clique para iniciar conversa';
+
+        async function aprovarTarefa(id) {
+            if (!confirm('Aprovar?')) return;
+            try {
+                const ref = db.collection('tarefas_pendentes').doc(id);
+                const doc = await ref.get();
+                const d = doc.data();
                 
-                return `
-                    <div class="chat-room-item ${isActive ? 'active' : ''} ${isNaoLida ? 'nao-lida' : ''}" 
-                         onclick="abrirSalaChat('${sala.id}')">
-                        <div class="chat-room-avatar">
-                            ${(sala.userName || 'U').charAt(0).toUpperCase()}
-                        </div>
-                        <div class="chat-room-info">
-                            <div class="chat-room-name">${sala.userName || 'Usuário'}</div>
-                            <div class="chat-room-preview">${preview}</div>
-                        </div>
-                        <div class="chat-room-meta">
-                            <div class="chat-room-time">${hora}</div>
-                            ${sala.naoLidas > 0 ? `<span class="chat-room-badge">${sala.naoLidas}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                await ref.update({ status: 'aprovado', data_aprovacao: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('anonymous_users').doc(d.user_id).update({
+                    saldo: firebase.firestore.FieldValue.increment(d.valor),
+                    saldo_pendente: firebase.firestore.FieldValue.increment(-d.valor),
+                    total_ganho: firebase.firestore.FieldValue.increment(d.valor)
+                });
+                mostrarToast('✅ Aprovado!', 'success');
+                carregarTarefas();
+                carregarEstatisticas();
+            } catch(e) { mostrarToast('Erro', 'error'); }
         }
-        
-        function abrirSalaChat(salaId) {
-            // Remove listener anterior
-            if (mensagensListener && salaAtual) {
-                database.ref('chats/' + salaAtual.id + '/mensagens').off('child_added', mensagensListener);
-            }
-            
-            salaAtual = chatRooms.find(s => s.id === salaId);
-            if (!salaAtual) return;
-            
-            // Marca mensagens como lidas no Firebase
-            if (salaAtual.mensagens) {
-                Object.entries(salaAtual.mensagens).forEach(([msgId, msg]) => {
-                    if (msg.remetente === 'usuario' && !msg.lida) {
-                        database.ref('chats/' + salaId + '/mensagens/' + msgId + '/lida').set(true);
-                    }
+
+        async function rejeitarTarefa(id) {
+            if (!confirm('Rejeitar?')) return;
+            try {
+                const ref = db.collection('tarefas_pendentes').doc(id);
+                const doc = await ref.get();
+                const d = doc.data();
+                
+                await ref.update({ status: 'rejeitado', data_rejeicao: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('anonymous_users').doc(d.user_id).update({
+                    saldo_pendente: firebase.firestore.FieldValue.increment(-d.valor)
                 });
-            }
-            
-            // Atualiza status da sala
-            database.ref('chats/' + salaId).update({
-                status: 'em_atendimento',
-                admin: 'admin'
-            });
-            
-            renderizarListaSalas();
-            renderizarChatInterface();
-            
-            // Listener para novas mensagens
-            mensagensListener = database.ref('chats/' + salaId + '/mensagens')
-                .orderByChild('timestamp')
-                .on('child_added', (snapshot) => {
-                    const msg = snapshot.val();
-                    const msgId = snapshot.key;
-                    
-                    // Marca como lida se for do usuário
-                    if (msg.remetente === 'usuario' && !msg.lida) {
-                        database.ref('chats/' + salaId + '/mensagens/' + msgId + '/lida').set(true);
-                    }
-                    
-                    renderizarMensagem(msg, msgId);
-                });
-            
-            // Listener para "digitando"
-            database.ref('chats/' + salaId + '/usuarioDigitando').on('value', (snapshot) => {
-                const digitando = snapshot.val();
-                const indicator = document.getElementById('chatTypingIndicator');
-                if (indicator) {
-                    if (digitando) {
-                        indicator.classList.add('active');
-                        scrollToBottom();
-                    } else {
-                        indicator.classList.remove('active');
-                    }
+                mostrarToast('❌ Rejeitado', 'error');
+                carregarTarefas();
+                carregarEstatisticas();
+            } catch(e) { mostrarToast('Erro', 'error'); }
+        }
+
+        function filtrarTarefas(filtro) {
+            filtroTarefas = filtro;
+            document.querySelectorAll('.section-card:nth-child(2) .filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            carregarTarefas();
+        }
+
+        // ============================================
+        // SAQUES
+        // ============================================
+        async function carregarSaques() {
+            try {
+                let query = db.collection('saques_pendentes').orderBy('data_solicitacao', 'desc');
+                if (filtroSaques !== 'todos') query = query.where('status', '==', filtroSaques);
+                
+                const snapshot = await query.get();
+                const container = document.getElementById('lista-saques');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Nenhum saque</p></div>';
+                    return;
                 }
+                
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const date = d.data_solicitacao ? new Date(d.data_solicitacao.toDate()).toLocaleString('pt-BR') : '';
+                    const item = document.createElement('div');
+                    item.className = 'item-card';
+                    item.innerHTML = `
+                        <div class="item-avatar" style="background: linear-gradient(135deg, #00b894 0%, #00a085 100%);"><i class="fas fa-wallet"></i></div>
+                        <div class="item-info">
+                            <div class="item-title">Saque PIX <span class="status-label status-${d.status}">${d.status}</span></div>
+                            <div class="item-meta"><i class="fas fa-key"></i> ${d.chave_pix || 'N/A'} | ${date}</div>
+                        </div>
+                        <div class="item-value" style="color: #6c5ce7;">R$ ${(d.valor||0).toFixed(2)}</div>
+                        <div class="item-actions">
+                            ${d.status === 'pendente' ? `
+                                <button class="btn-action btn-approve" onclick="pagarSaque('${doc.id}')" title="Pagar"><i class="fas fa-check"></i></button>
+                                <button class="btn-action btn-reject" onclick="rejeitarSaque('${doc.id}')" title="Rejeitar"><i class="fas fa-times"></i></button>
+                            ` : ''}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function pagarSaque(id) {
+            if (!confirm('Confirmar pagamento?')) return;
+            try {
+                await db.collection('saques_pendentes').doc(id).update({
+                    status: 'pago', data_pagamento: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                mostrarToast('✅ Pago!', 'success');
+                carregarSaques();
+                carregarEstatisticas();
+            } catch(e) { mostrarToast('Erro', 'error'); }
+        }
+
+        async function rejeitarSaque(id) {
+            if (!confirm('Rejeitar? Valor volta ao usuário.')) return;
+            try {
+                const ref = db.collection('saques_pendentes').doc(id);
+                const doc = await ref.get();
+                const d = doc.data();
+                
+                await ref.update({ status: 'rejeitado', data_rejeicao: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('anonymous_users').doc(d.user_id).update({
+                    saldo: firebase.firestore.FieldValue.increment(d.valor)
+                });
+                mostrarToast('❌ Rejeitado', 'error');
+                carregarSaques();
+                carregarEstatisticas();
+            } catch(e) { mostrarToast('Erro', 'error'); }
+        }
+
+        function filtrarSaques(filtro) {
+            filtroSaques = filtro;
+            document.querySelectorAll('.section-card:nth-child(3) .filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            carregarSaques();
+        }
+
+        // ============================================
+        // CHAT ADMIN
+        // ============================================
+        function abrirChatAdmin() {
+            document.getElementById('chat-overlay').classList.add('active');
+            carregarConversas();
+        }
+
+        function fecharChatAdmin() {
+            document.getElementById('chat-overlay').classList.remove('active');
+            conversaAtual = null;
+            if (chatListenerAtual) { chatListenerAtual(); chatListenerAtual = null; }
+        }
+
+        function iniciarListenerChat() {
+            db.collection('chats').onSnapshot(snapshot => {
+                totalMensagensNaoLidas = 0;
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    if (d.nao_lidas_admin > 0) totalMensagensNaoLidas += d.nao_lidas_admin;
+                });
+                atualizarBadgeChatAdmin();
+                document.getElementById('mensagens-nao-lidas').textContent = totalMensagensNaoLidas;
             });
         }
-        
-        function renderizarChatInterface() {
-            const container = document.getElementById('chatMain');
+
+        async function carregarConversas() {
+            const list = document.getElementById('chat-list');
+            list.innerHTML = '<div style="padding: 20px; text-align: center; color: #b2bec3;"><i class="fas fa-spinner fa-spin"></i></div>';
             
-            container.innerHTML = `
+            try {
+                const snapshot = await db.collection('chats').orderBy('timestamp', 'desc').get();
+                list.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    list.innerHTML = '<div style="padding: 40px; text-align: center; color: #b2bec3;"><i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 10px;"></i><p>Sem conversas</p></div>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const hora = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
+                    const item = document.createElement('div');
+                    item.className = `chat-item ${d.nao_lidas_admin > 0 ? 'unread' : ''}`;
+                    item.onclick = () => selecionarConversa(doc.id, d);
+                    item.innerHTML = `
+                        <div class="chat-avatar">${d.user_id?.substring(5,7).toUpperCase() || 'U'}</div>
+                        <div class="chat-preview">
+                            <div class="chat-name">Usuário ${d.user_id?.substring(0,15)}... ${d.nao_lidas_admin > 0 ? `<span class="chat-badge">${d.nao_lidas_admin}</span>` : ''}</div>
+                            <div class="chat-last-msg">${d.ultima_mensagem || 'Sem mensagens'}</div>
+                        </div>
+                        <div class="chat-meta"><div class="chat-time">${hora}</div></div>
+                    `;
+                    list.appendChild(item);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        function filtrarConversas(termo) {
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(termo.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+
+        async function selecionarConversa(userId, data) {
+            conversaAtual = userId;
+            document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const main = document.getElementById('chat-main');
+            main.innerHTML = `
                 <div class="chat-main-header">
-                    <div class="chat-main-avatar">
-                        ${(salaAtual.userName || 'U').charAt(0).toUpperCase()}
+                    <div class="chat-user-info">
+                        <div class="chat-user-avatar">${userId.substring(5,7).toUpperCase()}</div>
+                        <div class="chat-user-details"><h4>Usuário ${userId.substring(0,20)}...</h4><p>ID: ${userId}</p></div>
                     </div>
-                    <div class="chat-main-info">
-                        <h4>${salaAtual.userName || 'Usuário'}</h4>
-                        <p>${salaAtual.userEmail || 'Email não disponível'}</p>
-                    </div>
-                    <div class="chat-main-status">
-                        <span class="status-online"></span>
-                        <span>Online</span>
-                    </div>
+                    <button class="btn-close-chat-admin" onclick="fecharChatAdmin()"><i class="fas fa-times"></i></button>
                 </div>
-                
-                <div class="chat-messages" id="chatMessagesArea">
-                    <!-- Mensagens serão inseridas aqui -->
-                    <div class="typing-indicator" id="chatTypingIndicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                </div>
-                
+                <div id="chat-messages-admin" class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="chatInputAdmin" 
-                           placeholder="Digite sua mensagem..." maxlength="500"
-                           onkeypress="if(event.key==='Enter') enviarMensagemAdmin()">
-                    <button class="btn-chat-enviar" onclick="enviarMensagemAdmin()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
+                    <input type="text" id="chat-input-admin" class="chat-input" placeholder="Digite sua resposta..." onkeypress="if(event.key==='Enter')enviarMensagemAdmin()">
+                    <button class="btn-send-admin" onclick="enviarMensagemAdmin()"><i class="fas fa-paper-plane"></i> Enviar</button>
                 </div>
             `;
             
-            // Carrega histórico
-            if (salaAtual.mensagens) {
-                const mensagens = Object.entries(salaAtual.mensagens)
-                    .map(([id, msg]) => ({...msg, id}))
-                    .sort((a, b) => a.timestamp - b.timestamp);
-                
-                mensagens.forEach(msg => renderizarMensagem(msg, msg.id, false));
-            }
-            
-            scrollToBottom();
-            
-            // Foca no input
-            setTimeout(() => document.getElementById('chatInputAdmin').focus(), 100);
+            carregarMensagens(userId);
+            await db.collection('chats').doc(userId).update({ nao_lidas_admin: 0 });
+            setTimeout(() => document.getElementById('chat-input-admin')?.focus(), 100);
         }
-        
-        function renderizarMensagem(mensagem, msgId, animar = true) {
-            // Evita duplicatas
-            if (document.querySelector(`[data-msg-id="${msgId}"]`)) return;
+
+        function carregarMensagens(userId) {
+            if (chatListenerAtual) chatListenerAtual();
+            const container = document.getElementById('chat-messages-admin');
             
-            const container = document.getElementById('chatMessagesArea');
-            const typingIndicator = document.getElementById('chatTypingIndicator');
-            
-            const div = document.createElement('div');
-            div.className = 'chat-message ' + (mensagem.remetente === 'suporte' ? 'sent' : 'received');
-            div.setAttribute('data-msg-id', msgId);
-            
-            const hora = new Date(mensagem.timestamp).toLocaleTimeString('pt-BR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            div.innerHTML = `
-                <div>${mensagem.texto}</div>
-                <div class="chat-message-time">${hora}</div>
-            `;
-            
-            // Insere antes do typing indicator
-            container.insertBefore(div, typingIndicator);
-            
-            if (animar) {
-                scrollToBottom();
-            }
+            chatListenerAtual = db.collection('chats').doc(userId).collection('mensagens').orderBy('timestamp', 'asc')
+                .onSnapshot(snapshot => {
+                    container.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        const m = doc.data();
+                        const div = document.createElement('div');
+                        div.className = `message ${m.sender === 'admin' ? 'message-sent' : 'message-received'}`;
+                        const time = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
+                        div.innerHTML = `<div class="message-sender">${m.sender === 'admin' ? 'Suporte' : 'Usuário'}</div>${m.texto}<div class="message-time">${time}</div>`;
+                        container.appendChild(div);
+                    });
+                    container.scrollTop = container.scrollHeight;
+                });
         }
-        
-        function enviarMensagemAdmin() {
-            const input = document.getElementById('chatInputAdmin');
+
+        async function enviarMensagemAdmin() {
+            const input = document.getElementById('chat-input-admin');
             const texto = input.value.trim();
-            
-            if (!texto || !salaAtual) return;
+            if (!texto || !conversaAtual) return;
             
             input.value = '';
-            
-            const mensagem = {
-                texto: texto,
-                remetente: 'suporte',
-                timestamp: Date.now(),
-                lida: true,
-                admin: 'admin'
-            };
-            
-            // Salva mensagem
-            database.ref('chats/' + salaAtual.id + '/mensagens').push(mensagem)
-                .then(() => {
-                    // Atualiza sala
-                    return database.ref('chats/' + salaAtual.id).update({
-                        ultimaMensagem: texto,
-                        ultimaAtualizacao: Date.now(),
-                        status: 'respondido'
-                    });
+            try {
+                await db.collection('chats').doc(conversaAtual).collection('mensagens').add({
+                    texto: texto, sender: 'admin', sender_name: 'Suporte',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(), lida: false
                 });
-            
-            // Simula "digitando" por 2 segundos
-            database.ref('chats/' + salaAtual.id + '/suporteDigitando').set(true);
-            setTimeout(() => {
-                database.ref('chats/' + salaAtual.id + '/suporteDigitando').set(false);
-            }, 2000);
+                await db.collection('chats').doc(conversaAtual).update({
+                    ultima_mensagem: texto, ultimo_remetente: 'admin',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'respondido', nao_lidas_usuario: firebase.firestore.FieldValue.increment(1)
+                });
+            } catch(e) { mostrarToast('Erro ao enviar', 'error'); }
         }
-        
-        function scrollToBottom() {
-            const container = document.getElementById('chatMessagesArea');
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
+
+        function atualizarBadgeChatAdmin() {
+            const badge = document.getElementById('chat-badge-admin');
+            if (totalMensagensNaoLidas > 0) {
+                badge.textContent = totalMensagensNaoLidas > 99 ? '99+' : totalMensagensNaoLidas;
+                badge.style.display = 'block';
+            } else badge.style.display = 'none';
         }
-        
-        // ==================== UTILITÁRIOS ====================
-        function fecharModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
+
+        // Utilitários
+        function verImagem(url) {
+            const modal = document.createElement('div');
+            modal.className = 'image-modal';
+            modal.innerHTML = `
+                <div class="image-modal-content">
+                    <button class="image-modal-close" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-times"></i></button>
+                    <img src="${url}" onclick="window.open('${url}', '_blank')">
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
-        
-        function showToast(mensagem, tipo = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = mensagem;
-            toast.className = 'toast ' + tipo;
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => toast.classList.remove('show'), 3000);
+
+        function mostrarToast(msg, tipo) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            toast.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
-        
-        // Fechar modal ao clicar fora
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('show');
-                }
-            });
-        });
-        
-        // Login com Enter
-        document.getElementById('adminSenha')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') fazerLogin();
-        });
+
+        function iniciarListeners() {
+            db.collection('tarefas_pendentes').onSnapshot(() => { carregarTarefas(); carregarEstatisticas(); });
+            db.collection('saques_pendentes').onSnapshot(() => { carregarSaques(); carregarEstatisticas(); });
+            db.collection('tarefas_sistema').onSnapshot(() => carregarTarefasSistema());
+        }
     </script>
 </body>
-</html>
+</html>'''
+
+# Salvar arquivo
+with open('/mnt/kimi/output/painel_admin_final.html', 'w', encoding='utf-8') as f:
+    f.write(painel_admin_final)
+
+print("=" * 70)
+print("✅ PAINEL ADMIN FINAL criado: painel_admin_final.html")
+print("=" * 70)
+print("\n🎯 SISTEMA COMPLETO DE TAREFAS DINÂMICAS:")
+print("   • Botão 'Nova Tarefa' para adicionar")
+print("   • Editar tarefas existentes")
+print("   • Excluir tarefas")
+print("   • Ativar/Desativar tarefas")
+print("   • Definir: título, descrição, valor, ícone, cor, ordem, link")
+print("   • Filtros: Todas / Ativas / Inativas")
+print("\n💬 CHAT INTEGRADO:")
+print("   • Central de atendimento completa")
+print("   • Lista de conversas com busca")
+print("   • Indicador de não lidas")
+print("\n📊 ESTRUTURA FIREBASE:")
+print("   • tarefas_sistema/ (coleção de tarefas dinâmicas)")
+print("   • chats/ (conversas)")
+print("   • tarefas_pendentes/ (comprovantes)")
+print("   • saques_pendentes/ (saques)")
