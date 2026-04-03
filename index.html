@@ -3,1133 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Renda Extra</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>TarefaPix - Painel Admin</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #f1f2f6; min-height: 100vh; }
-        
-        /* Login */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; justify-content: center; align-items: center; z-index: 9999;
-        }
-        .login-box {
-            background: white; padding: 40px; border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center;
-        }
-        .login-icon { font-size: 60px; color: #6c5ce7; margin-bottom: 20px; }
-        .login-title { font-size: 24px; font-weight: 700; color: #2d3436; margin-bottom: 10px; }
-        .login-input {
-            width: 100%; padding: 15px; border: 2px solid #dfe6e9; border-radius: 12px;
-            font-size: 16px; margin: 15px 0; font-family: 'Poppins', sans-serif;
-        }
-        .login-input:focus { outline: none; border-color: #6c5ce7; }
-        .btn-login {
-            width: 100%; padding: 15px; background: linear-gradient(135deg, #6c5ce7 0%, #5b4cdb 100%);
-            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
-            cursor: pointer; transition: transform 0.2s;
-        }
-        .btn-login:hover { transform: translateY(-2px); }
-        
-        /* Admin Container */
-        #admin-container { display: none; }
-        
-        /* Header */
-        .admin-header {
-            background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
-        }
-        .admin-title { font-size: 24px; font-weight: 700; color: #2d3436; display: flex; align-items: center; gap: 10px; }
-        .admin-title i { color: #6c5ce7; }
-        .admin-actions { display: flex; gap: 15px; }
-        
-        .btn-header-admin {
-            padding: 10px 20px; background: #6c5ce7; color: white; border: none;
-            border-radius: 8px; cursor: pointer; font-weight: 500;
-            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
-            position: relative;
-        }
-        .btn-header-admin:hover { background: #5b4cdb; }
-        .btn-header-admin .badge {
-            position: absolute; top: -8px; right: -8px; background: #ff6b6b; color: white;
-            font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
-            min-width: 18px; text-align: center;
-        }
-        
-        .btn-logout {
-            padding: 10px 20px; background: #ff6b6b; color: white; border: none;
-            border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s;
-        }
-        .btn-logout:hover { background: #ee5a5a; }
-        
-        /* Stats */
-        .stats-section {
-            padding: 30px; display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;
-        }
-        .stat-card {
-            background: white; border-radius: 16px; padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 20px;
-            transition: transform 0.2s;
-        }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-icon-box {
-            width: 60px; height: 60px; border-radius: 15px;
-            display: flex; align-items: center; justify-content: center; font-size: 28px;
-        }
-        .stat-icon-box.blue { background: #e3f2fd; color: #2196f3; }
-        .stat-icon-box.green { background: #e8f5e9; color: #4caf50; }
-        .stat-icon-box.orange { background: #fff3e0; color: #ff9800; }
-        .stat-icon-box.red { background: #ffebee; color: #f44336; }
-        .stat-icon-box.purple { background: #f3e5f5; color: #9c27b0; }
-        .stat-info h3 { font-size: 28px; font-weight: 700; color: #2d3436; }
-        .stat-info p { color: #636e72; font-size: 14px; }
-        
-        /* Main Content */
-        .main-content {
-            padding: 0 30px 30px;
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;
-        }
-        
-        /* Section Cards */
-        .section-card {
-            background: white; border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden;
-        }
-        .section-header {
-            padding: 20px 25px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;
-        }
-        .section-header h2 {
-            font-size: 18px; font-weight: 600; color: #2d3436;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .badge {
-            background: #6c5ce7; color: white; padding: 4px 12px;
-            border-radius: 20px; font-size: 12px; font-weight: 600;
-        }
-        .section-content { max-height: 500px; overflow-y: auto; }
-        
-        /* Items */
-        .item-card {
-            padding: 20px 25px; border-bottom: 1px solid #f1f2f6;
-            display: flex; align-items: center; gap: 15px; transition: background 0.2s;
-        }
-        .item-card:hover { background: #f8f9fa; }
-        .item-avatar {
-            width: 50px; height: 50px; border-radius: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 20px; font-weight: 700; flex-shrink: 0;
-        }
-        .item-info { flex: 1; }
-        .item-title {
-            font-weight: 600; color: #2d3436; margin-bottom: 4px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .item-meta { font-size: 12px; color: #636e72; }
-        .item-value {
-            font-size: 18px; font-weight: 700; color: #00b894; margin-right: 15px;
-        }
-        .item-actions { display: flex; gap: 8px; }
-        
-        .btn-action {
-            width: 36px; height: 36px; border-radius: 8px; border: none;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
-        .btn-approve { background: #00b894; color: white; }
-        .btn-approve:hover { background: #00a085; }
-        .btn-reject { background: #ff6b6b; color: white; }
-        .btn-reject:hover { background: #ee5a5a; }
-        .btn-view { background: #6c5ce7; color: white; }
-        .btn-view:hover { background: #5b4cdb; }
-        .btn-edit { background: #ffd93d; color: #2d3436; }
-        .btn-edit:hover { background: #f4d03f; }
-        .btn-delete { background: #e17055; color: white; }
-        .btn-delete:hover { background: #d63031; }
-        
-        .status-label {
-            padding: 4px 10px; border-radius: 20px; font-size: 11px;
-            font-weight: 600; text-transform: uppercase;
-        }
-        .status-pendente { background: #fff3e0; color: #ff9800; }
-        .status-aprovado { background: #e8f5e9; color: #4caf50; }
-        .status-rejeitado { background: #ffebee; color: #f44336; }
-        .status-ativa { background: #e8f5e9; color: #4caf50; }
-        .status-inativa { background: #ffebee; color: #f44336; }
-        
-        /* Botão Nova Tarefa */
-        .btn-nova-tarefa {
-            padding: 8px 16px; background: #00b894; color: white; border: none;
-            border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
-            display: flex; align-items: center; gap: 5px; transition: all 0.2s;
-        }
-        .btn-nova-tarefa:hover { background: #00a085; transform: scale(1.05); }
-        
-        /* Modal de Tarefa (Add/Edit) */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 10000;
-            display: none; justify-content: center; align-items: center;
-            padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        
-        .modal-content {
-            background: white; border-radius: 20px; padding: 30px;
-            max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
-            animation: modalSlide 0.3s ease;
-        }
-        
-        @keyframes modalSlide {
-            from { opacity: 0; transform: translateY(-50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 25px;
-        }
-        .modal-header h2 {
-            font-size: 22px; font-weight: 700; color: #2d3436;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .btn-close-modal {
-            width: 40px; height: 40px; border-radius: 50%; border: none;
-            background: #f1f2f6; color: #636e72; cursor: pointer;
-            font-size: 20px; transition: all 0.2s;
-        }
-        .btn-close-modal:hover { background: #e17055; color: white; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block; font-weight: 600; color: #2d3436;
-            margin-bottom: 8px; font-size: 14px;
-        }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%; padding: 12px 15px; border: 2px solid #e9ecef;
-            border-radius: 10px; font-size: 14px; font-family: 'Poppins', sans-serif;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-            outline: none; border-color: #6c5ce7;
-        }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
-        .checkbox-group {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px; background: #f8f9fa; border-radius: 10px;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: 20px; height: 20px; accent-color: #6c5ce7;
-        }
-        
-        .btn-salvar {
-            width: 100%; padding: 15px; background: linear-gradient(135deg, #6c5ce7 0%, #5b4cdb 100%);
-            color: white; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: all 0.3s;
-        }
-        .btn-salvar:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,92,231,0.4); }
-        
-        /* Chat Overlay */
-        .chat-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            display: none; justify-content: center; align-items: center; padding: 20px;
-        }
-        .chat-overlay.active { display: flex; }
-        
-        .chat-container {
-            width: 100%; max-width: 900px; height: 80vh; background: white;
-            border-radius: 20px; display: flex; overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .chat-sidebar {
-            width: 300px; background: #f8f9fa; border-right: 1px solid #e9ecef;
-            display: flex; flex-direction: column;
-        }
-        .chat-sidebar-header {
-            padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
-        }
-        .chat-sidebar-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .chat-search { padding: 15px; border-bottom: 1px solid #e9ecef; }
-        .chat-search input {
-            width: 100%; padding: 10px 15px; border: 2px solid #e9ecef;
-            border-radius: 20px; font-size: 14px; font-family: 'Poppins', sans-serif;
-        }
-        .chat-list { flex: 1; overflow-y: auto; }
-        
-        .chat-item {
-            padding: 15px 20px; display: flex; align-items: center; gap: 12px;
-            cursor: pointer; transition: all 0.2s; border-bottom: 1px solid #f1f2f6;
-        }
-        .chat-item:hover, .chat-item.active { background: #f0e6ff; }
-        .chat-item.unread { background: #fff3e0; }
-        
-        .chat-avatar {
-            width: 45px; height: 45px; border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 700; font-size: 16px;
-        }
-        .chat-preview { flex: 1; min-width: 0; }
-        .chat-name {
-            font-weight: 600; color: #2d3436; margin-bottom: 3px;
-            display: flex; align-items: center; gap: 5px;
-        }
-        .chat-last-msg { font-size: 13px; color: #636e72; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-meta { text-align: right; }
-        .chat-time { font-size: 11px; color: #b2bec3; margin-bottom: 5px; }
-        .chat-badge {
-            background: #ff6b6b; color: white; font-size: 11px; font-weight: 700;
-            padding: 2px 6px; border-radius: 10px; min-width: 18px; display: inline-block; text-align: center;
-        }
-        
-        .chat-main { flex: 1; display: flex; flex-direction: column; }
-        .chat-main-header {
-            padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e9ecef;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .chat-user-info { display: flex; align-items: center; gap: 12px; }
-        .chat-user-avatar {
-            width: 45px; height: 45px; border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;
-        }
-        .chat-user-details h4 { color: #2d3436; margin-bottom: 3px; }
-        .chat-user-details p { font-size: 13px; color: #636e72; }
-        .btn-close-chat-admin {
-            width: 40px; height: 40px; border-radius: 50%; border: none;
-            background: transparent; color: #636e72; cursor: pointer; font-size: 20px;
-        }
-        .btn-close-chat-admin:hover { background: #f1f2f6; color: #2d3436; }
-        
-        .chat-messages {
-            flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; gap: 15px; background: #f8f9fa;
-        }
-        .message {
-            max-width: 70%; padding: 12px 16px; border-radius: 20px;
-            font-size: 14px; line-height: 1.4; animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .message-received {
-            align-self: flex-start; background: white; color: #2d3436;
-            border-bottom-left-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .message-sent {
-            align-self: flex-end; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; border-bottom-right-radius: 5px;
-        }
-        .message-time { font-size: 11px; opacity: 0.7; margin-top: 5px; }
-        .message-sender { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
-        
-        .chat-input-area {
-            padding: 20px; background: white; border-top: 1px solid #e9ecef;
-            display: flex; gap: 10px; align-items: center;
-        }
-        .chat-input {
-            flex: 1; padding: 12px 20px; border: 2px solid #e9ecef;
-            border-radius: 25px; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none;
-        }
-        .chat-input:focus { border-color: #6c5ce7; }
-        .btn-send-admin {
-            padding: 12px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none; border-radius: 25px; color: white; font-weight: 600;
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
-        }
-        .btn-send-admin:hover { transform: scale(1.05); }
-        
-        .empty-chat {
-            flex: 1; display: flex; flex-direction: column; justify-content: center;
-            align-items: center; color: #b2bec3; text-align: center; padding: 40px;
-        }
-        .empty-chat i { font-size: 80px; margin-bottom: 20px; }
-        
-        /* Image Modal */
-        .image-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 10000;
-            display: flex; justify-content: center; align-items: center; padding: 20px;
-        }
-        .image-modal-content { max-width: 90%; max-height: 90%; position: relative; }
-        .image-modal-content img { max-width: 100%; max-height: 80vh; border-radius: 10px; }
-        .image-modal-close {
-            position: absolute; top: -40px; right: 0; color: white;
-            font-size: 30px; cursor: pointer; background: none; border: none;
-        }
-        
-        /* Empty State */
-        .empty-state { padding: 60px 20px; text-align: center; color: #b2bec3; }
-        .empty-state i { font-size: 60px; margin-bottom: 20px; }
-        
-        /* Toast */
-        .toast {
-            position: fixed; bottom: 30px; right: 30px; padding: 16px 24px;
-            border-radius: 12px; color: white; font-weight: 600;
-            z-index: 99999; animation: slideUp 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .toast.success { background: linear-gradient(135deg, #00b894 0%, #00a085 100%); }
-        .toast.error { background: linear-gradient(135deg, #e17055 0%, #d63031 100%); }
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        /* Filtros */
-        .filters {
-            padding: 15px 25px; background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef; display: flex; gap: 10px; flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 16px; border: 2px solid #dfe6e9; background: white;
-            border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500;
-        }
-        .filter-btn:hover, .filter-btn.active { border-color: #6c5ce7; background: #6c5ce7; color: white; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f5f5f5; color: #333; }
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .login-box { background: white; border-radius: 20px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #667eea; font-size: 28px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: #555; font-size: 14px; }
+        .input-group input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; }
+        .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .admin-container { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: #667eea; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stat-card h3 { color: #718096; font-size: 14px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: #2d3748; }
+        .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .section h2 { margin-bottom: 20px; color: #2d3748; display: flex; align-items: center; gap: 10px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; background: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .tab.active { background: #667eea; color: white; }
+        .item { border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .item-title { font-weight: bold; color: #2d3748; }
+        .item-meta { color: #718096; font-size: 14px; }
+        .item img { width: 100%; max-width: 300px; border-radius: 8px; margin: 10px 0; cursor: pointer; }
+        .user-badge { background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; font-family: monospace; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-pending { background: #fffaf0; color: #c05621; }
+        .badge-approved { background: #f0fff4; color: #22543d; }
+        .badge-rejected { background: #fff5f5; color: #c53030; }
+        .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .btn-approve { padding: 10px 20px; background: #48bb78; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-reject { padding: 10px 20px; background: #e53e3e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-delete { padding: 10px 20px; background: #718096; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .btn-save { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .empty { text-align: center; padding: 40px; color: #718096; }
+        .filter-bar { background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .filter-bar input, .filter-bar select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: 16px 24px; border-radius: 12px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; }
+        .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
-    <!-- Login -->
-    <div id="login-screen">
+    <div class="login-screen" id="loginScreen">
         <div class="login-box">
-            <div class="login-icon"><i class="fas fa-shield-alt"></i></div>
-            <h1 class="login-title">Painel Administrativo</h1>
-            <p style="color: #636e72; margin-bottom: 20px;">Digite a senha para acessar</p>
-            <input type="password" id="admin-password" class="login-input" placeholder="Senha" onkeypress="if(event.key==='Enter')fazerLogin()">
-            <button class="btn-login" onclick="fazerLogin()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-            <p id="login-error" style="color: #ff6b6b; margin-top: 15px; display: none;"><i class="fas fa-exclamation-triangle"></i> Senha incorreta!</p>
+            <div class="logo"><h1>🔐 Painel Admin</h1></div>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Senha de Administrador</label>
+                    <input type="password" id="adminPass" placeholder="Digite a senha" required>
+                </div>
+                <button type="submit" class="btn-primary">ENTRAR</button>
+            </form>
         </div>
     </div>
 
-    <!-- Admin Container -->
-    <div id="admin-container">
-        <!-- Header -->
-        <div class="admin-header">
-            <div class="admin-title"><i class="fas fa-cog"></i> Painel de Controle</div>
-            <div class="admin-actions">
-                <button class="btn-header-admin" onclick="abrirChatAdmin()">
-                    <i class="fas fa-comments"></i> Mensagens
-                    <span class="badge" id="chat-badge-admin" style="display: none;">0</span>
-                </button>
-                <button class="btn-logout" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
-            </div>
+    <div class="admin-container" id="adminContainer">
+        <div class="header">
+            <h1>📊 TarefaPix Admin</h1>
+            <button class="btn-delete" onclick="logout()">Sair</button>
         </div>
 
-        <!-- Stats -->
-        <div class="stats-section">
-            <div class="stat-card">
-                <div class="stat-icon-box blue"><i class="fas fa-users"></i></div>
-                <div class="stat-info"><h3 id="total-usuarios">0</h3><p>Usuários</p></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon-box orange"><i class="fas fa-clock"></i></div>
-                <div class="stat-info"><h3 id="tarefas-pendentes">0</h3><p>Tarefas Pendentes</p></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon-box green"><i class="fas fa-money-bill-wave"></i></div>
-                <div class="stat-info"><h3 id="saques-pendentes">0</h3><p>Saques Pendentes</p></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon-box purple"><i class="fas fa-comments"></i></div>
-                <div class="stat-info"><h3 id="mensagens-nao-lidas">0</h3><p>Mensagens Novas</p></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon-box red"><i class="fas fa-wallet"></i></div>
-                <div class="stat-info"><h3 id="total-pago">R$ 0,00</h3><p>Total Pago</p></div>
-            </div>
+        <div class="stats">
+            <div class="stat-card"><h3>👥 Usuários Únicos</h3><div class="value" id="statUsers">0</div></div>
+            <div class="stat-card"><h3>📋 Comprovantes Pendentes</h3><div class="value" id="statPending">0</div></div>
+            <div class="stat-card"><h3>✓ Comprovantes Aprovados</h3><div class="value" id="statApproved">0</div></div>
+            <div class="stat-card"><h3>💸 Saques Pendentes</h3><div class="value" id="statWithdrawals">0</div></div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Gerenciamento de Tarefas -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h2><i class="fas fa-tasks"></i> Gerenciar Tarefas</h2>
-                    <button class="btn-nova-tarefa" onclick="abrirModalTarefa()">
-                        <i class="fas fa-plus"></i> Nova Tarefa
-                    </button>
-                </div>
-                <div class="filters">
-                    <button class="filter-btn active" onclick="filtrarTarefasSistema('todas')">Todas</button>
-                    <button class="filter-btn" onclick="filtrarTarefasSistema('ativas')">Ativas</button>
-                    <button class="filter-btn" onclick="filtrarTarefasSistema('inativas')">Inativas</button>
-                </div>
-                <div class="section-content" id="lista-tarefas-sistema">
-                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div>
-                </div>
-            </div>
+        <div class="tabs">
+            <button class="tab active" onclick="showSection('submissions')">📋 Comprovantes</button>
+            <button class="tab" onclick="showSection('withdrawals')">💸 Saques</button>
+            <button class="tab" onclick="showSection('tasks')">📝 Tarefas</button>
+            <button class="tab" onclick="showSection('users')">👥 Usuários</button>
+        </div>
 
-            <!-- Tarefas Pendentes -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h2><i class="fas fa-check-circle"></i> Tarefas para Aprovar</h2>
-                    <span class="badge" id="badge-tarefas">0</span>
-                </div>
-                <div class="filters">
-                    <button class="filter-btn active" onclick="filtrarTarefas('todos')">Todos</button>
-                    <button class="filter-btn" onclick="filtrarTarefas('pendente')">Pendentes</button>
-                    <button class="filter-btn" onclick="filtrarTarefas('aprovado')">Aprovados</button>
-                </div>
-                <div class="section-content" id="lista-tarefas"><div class="empty-state"><i class="fas fa-inbox"></i><p>Carregando...</p></div></div>
+        <div class="section" id="section-submissions">
+            <h2>📋 Comprovantes Enviados</h2>
+            <div class="filter-bar">
+                <label>Filtrar por ID:</label>
+                <input type="text" id="filterUserId" placeholder="Ex: USER_123456" onkeyup="renderSubmissions()">
+                <label>Status:</label>
+                <select id="filterStatus" onchange="renderSubmissions()">
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendentes</option>
+                    <option value="approved">Aprovados</option>
+                    <option value="rejected">Rejeitados</option>
+                </select>
             </div>
+            <div id="submissionsList"></div>
+        </div>
 
-            <!-- Saques Pendentes -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h2><i class="fas fa-hand-holding-usd"></i> Saques para Processar</h2>
-                    <span class="badge" id="badge-saques">0</span>
-                </div>
-                <div class="filters">
-                    <button class="filter-btn active" onclick="filtrarSaques('todos')">Todos</button>
-                    <button class="filter-btn" onclick="filtrarSaques('pendente')">Pendentes</button>
-                    <button class="filter-btn" onclick="filtrarSaques('pago')">Pagos</button>
-                </div>
-                <div class="section-content" id="lista-saques"><div class="empty-state"><i class="fas fa-inbox"></i><p>Carregando...</p></div></div>
+        <div class="section" id="section-withdrawals" style="display:none;">
+            <h2>💸 Solicitações de Saque</h2>
+            <div class="filter-bar">
+                <label>Filtrar por ID:</label>
+                <input type="text" id="filterWithdrawUserId" placeholder="Ex: USER_123456" onkeyup="renderWithdrawals()">
             </div>
+            <div id="withdrawalsList"></div>
+        </div>
+
+        <div class="section" id="section-tasks" style="display:none;">
+            <h2>📝 Gerenciar Tarefas</h2>
+            <div style="background:#f7fafc;padding:20px;border-radius:12px;margin-bottom:20px;">
+                <h3 style="margin-bottom:15px;">➕ Nova Tarefa</h3>
+                <div class="form-group"><label>Título</label><input type="text" id="newTaskTitle" placeholder="Ex: Recarregue R$ 5,00 e Ganhe R$ 6,00"></div>
+                <div class="form-group"><label>Descrição</label><textarea id="newTaskDesc" placeholder="Descrição detalhada da tarefa..."></textarea></div>
+                <div class="form-group"><label>Link</label><input type="url" id="newTaskLink" placeholder="https://..."></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <div class="form-group"><label>Recompensa (R$)</label><input type="number" id="newTaskReward" step="0.01" value="6"></div>
+                    <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins" value="6000"></div>
+                </div>
+                <button class="btn-save" onclick="createTask()">Criar Tarefa</button>
+            </div>
+            <div id="tasksList"></div>
+        </div>
+
+        <div class="section" id="section-users" style="display:none;">
+            <h2>👥 Usuários Cadastrados</h2>
+            <div class="filter-bar">
+                <label>Buscar ID:</label>
+                <input type="text" id="searchUserId" placeholder="Ex: USER_123456" onkeyup="renderUsers()">
+            </div>
+            <div id="usersList"></div>
         </div>
     </div>
 
-    <!-- Modal de Tarefa (Add/Edit) -->
-    <div id="modal-tarefa" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-tasks"></i> <span id="modal-tarefa-titulo">Nova Tarefa</span></h2>
-                <button class="btn-close-modal" onclick="fecharModalTarefa()"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <input type="hidden" id="tarefa-id">
-            
-            <div class="form-group">
-                <label>Título da Tarefa</label>
-                <input type="text" id="tarefa-titulo" placeholder="Ex: Assistir Vídeo">
-            </div>
-            
-            <div class="form-group">
-                <label>Descrição</label>
-                <textarea id="tarefa-descricao" placeholder="Ex: Assista um vídeo de 30 segundos"></textarea>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Valor (R$)</label>
-                    <input type="number" id="tarefa-valor" step="0.01" placeholder="0.50">
-                </div>
-                <div class="form-group">
-                    <label>Ícone (emoji)</label>
-                    <input type="text" id="tarefa-icone" placeholder="🎬" maxlength="2">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Cor</label>
-                    <select id="tarefa-cor">
-                        <option value="#ff6b6b">Vermelho</option>
-                        <option value="#4ecdc4">Turquesa</option>
-                        <option value="#ffe66d">Amarelo</option>
-                        <option value="#a8e6cf">Verde</option>
-                        <option value="#c7ceea">Roxo</option>
-                        <option value="#ffd93d">Dourado</option>
-                        <option value="#6c5ce7">Índigo</option>
-                        <option value="#fd79a8">Rosa</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Ordem</label>
-                    <input type="number" id="tarefa-ordem" placeholder="1">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Link (opcional)</label>
-                <input type="url" id="tarefa-link" placeholder="https://...">
-            </div>
-            
-            <div class="form-group">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="tarefa-ativa" checked>
-                    <label for="tarefa-ativa" style="margin: 0;">Tarefa ativa (visível para usuários)</label>
-                </div>
-            </div>
-            
-            <button class="btn-salvar" onclick="salvarTarefa()">
-                <i class="fas fa-save"></i> Salvar Tarefa
-            </button>
-        </div>
-    </div>
-
-    <!-- Chat Overlay -->
-    <div id="chat-overlay" class="chat-overlay">
-        <div class="chat-container">
-            <div class="chat-sidebar">
-                <div class="chat-sidebar-header">
-                    <div class="chat-sidebar-title"><i class="fas fa-headset"></i> Central de Atendimento</div>
-                </div>
-                <div class="chat-search">
-                    <input type="text" id="chat-search" placeholder="Buscar usuário..." oninput="filtrarConversas(this.value)">
-                </div>
-                <div id="chat-list" class="chat-list"></div>
-            </div>
-            <div class="chat-main" id="chat-main">
-                <div class="empty-chat">
-                    <i class="fas fa-comments"></i>
-                    <h3>Selecione uma conversa</h3>
-                    <p>Escolha um usuário na lista para iniciar o atendimento</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <div class="toast" id="toast"></div>
 
     <script>
-        // Config Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyChdKpWC0g4W2kFM8m2E7f6v9X8w2w3w4w",
-            authDomain: "renda-extra-app.firebaseapp.com",
-            projectId: "renda-extra-app",
-            storageBucket: "renda-extra-app.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abc123def456"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        
+        const DB_PREFIX = 'tarefapix_';
         const ADMIN_PASSWORD = 'admin123';
-        let filtroTarefas = 'todos', filtroSaques = 'todos', filtroTarefasSistema = 'todas';
-        let conversaAtual = null, chatListenerAtual = null, totalMensagensNaoLidas = 0;
-        let tarefaEditando = null;
 
-        // Login
-        function fazerLogin() {
-            if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('admin-container').style.display = 'block';
-                sessionStorage.setItem('admin_logado', 'true');
-                carregarEstatisticas();
-                carregarTarefasSistema();
-                carregarTarefas();
-                carregarSaques();
-                iniciarListeners();
-                iniciarListenerChat();
-            } else {
-                document.getElementById('login-error').style.display = 'block';
-                setTimeout(() => document.getElementById('login-error').style.display = 'none', 3000);
-            }
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (document.getElementById('adminPass').value === ADMIN_PASSWORD) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+                loadData();
+            } else showToast('❌ Senha incorreta!');
+        });
+
+        function logout() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminContainer').style.display = 'none';
+            document.getElementById('adminPass').value = '';
         }
 
-        function fazerLogout() {
-            sessionStorage.removeItem('admin_logado');
-            location.reload();
+        function showSection(section) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            ['submissions', 'withdrawals', 'tasks', 'users'].forEach(s => document.getElementById('section-' + s).style.display = 'none');
+            document.getElementById('section-' + section).style.display = 'block';
+            if (section === 'submissions') renderSubmissions();
+            if (section === 'withdrawals') renderWithdrawals();
+            if (section === 'tasks') renderTasks();
+            if (section === 'users') renderUsers();
         }
 
-        if (sessionStorage.getItem('admin_logado') === 'true') {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('admin-container').style.display = 'block';
-            carregarEstatisticas();
-            carregarTarefasSistema();
-            carregarTarefas();
-            carregarSaques();
-            iniciarListeners();
-            iniciarListenerChat();
+        function loadData() { updateStats(); renderSubmissions(); }
+
+        function updateStats() {
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const users = new Set(submissions.map(s => s.user).filter(u => u));
+            document.getElementById('statUsers').textContent = users.size;
+            document.getElementById('statPending').textContent = submissions.filter(s => s.status === 'pending').length;
+            document.getElementById('statApproved').textContent = submissions.filter(s => s.status === 'approved').length;
+            document.getElementById('statWithdrawals').textContent = withdrawals.filter(w => w.status === 'pending').length;
         }
 
-        // Estatísticas
-        async function carregarEstatisticas() {
-            try {
-                const users = await db.collection('anonymous_users').get();
-                document.getElementById('total-usuarios').textContent = users.size;
-                
-                const tarefasPend = await db.collection('tarefas_pendentes').where('status', '==', 'pendente').get();
-                document.getElementById('tarefas-pendentes').textContent = tarefasPend.size;
-                document.getElementById('badge-tarefas').textContent = tarefasPend.size;
-                
-                const saquesPend = await db.collection('saques_pendentes').where('status', '==', 'pendente').get();
-                document.getElementById('saques-pendentes').textContent = saquesPend.size;
-                document.getElementById('badge-saques').textContent = saquesPend.size;
-                
-                const tarefasAprov = await db.collection('tarefas_pendentes').where('status', '==', 'aprovado').get();
-                const saquesPagos = await db.collection('saques_pendentes').where('status', '==', 'pago').get();
-                
-                let totalPago = 0;
-                tarefasAprov.forEach(d => totalPago += d.data().valor || 0);
-                saquesPagos.forEach(d => totalPago += d.data().valor || 0);
-                document.getElementById('total-pago').textContent = `R$ ${totalPago.toFixed(2)}`;
-            } catch(e) { console.error(e); }
-        }
-
-        // ============================================
-        // GERENCIAMENTO DE TAREFAS DO SISTEMA
-        // ============================================
-        function abrirModalTarefa(tarefa = null) {
-            tarefaEditando = tarefa;
-            document.getElementById('modal-tarefa').classList.add('active');
-            document.getElementById('modal-tarefa-titulo').textContent = tarefa ? 'Editar Tarefa' : 'Nova Tarefa';
+        function renderSubmissions() {
+            const list = document.getElementById('submissionsList');
+            let submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const filterId = document.getElementById('filterUserId').value.toUpperCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            if (filterId) submissions = submissions.filter(s => s.user && s.user.includes(filterId));
+            if (filterStatus !== 'all') submissions = submissions.filter(s => s.status === filterStatus);
             
-            if (tarefa) {
-                document.getElementById('tarefa-id').value = tarefa.id;
-                document.getElementById('tarefa-titulo').value = tarefa.titulo;
-                document.getElementById('tarefa-descricao').value = tarefa.descricao;
-                document.getElementById('tarefa-valor').value = tarefa.valor;
-                document.getElementById('tarefa-icone').value = tarefa.icone;
-                document.getElementById('tarefa-cor').value = tarefa.cor;
-                document.getElementById('tarefa-ordem').value = tarefa.ordem;
-                document.getElementById('tarefa-link').value = tarefa.link || '';
-                document.getElementById('tarefa-ativa').checked = tarefa.ativa;
-            } else {
-                document.getElementById('tarefa-id').value = '';
-                document.getElementById('tarefa-titulo').value = '';
-                document.getElementById('tarefa-descricao').value = '';
-                document.getElementById('tarefa-valor').value = '';
-                document.getElementById('tarefa-icone').value = '📱';
-                document.getElementById('tarefa-cor').value = '#6c5ce7';
-                document.getElementById('tarefa-ordem').value = '1';
-                document.getElementById('tarefa-link').value = '';
-                document.getElementById('tarefa-ativa').checked = true;
-            }
-        }
-
-        function fecharModalTarefa() {
-            document.getElementById('modal-tarefa').classList.remove('active');
-            tarefaEditando = null;
-        }
-
-        async function salvarTarefa() {
-            const dados = {
-                titulo: document.getElementById('tarefa-titulo').value.trim(),
-                descricao: document.getElementById('tarefa-descricao').value.trim(),
-                valor: parseFloat(document.getElementById('tarefa-valor').value) || 0,
-                icone: document.getElementById('tarefa-icone').value || '📱',
-                cor: document.getElementById('tarefa-cor').value,
-                ordem: parseInt(document.getElementById('tarefa-ordem').value) || 1,
-                link: document.getElementById('tarefa-link').value.trim(),
-                ativa: document.getElementById('tarefa-ativa').checked,
-                data_atualizacao: firebase.firestore.FieldValue.serverTimestamp()
-            };
+            if (submissions.length === 0) { list.innerHTML = '<div class="empty">Nenhum comprovante encontrado</div>'; return; }
             
-            if (!dados.titulo || !dados.descricao || dados.valor <= 0) {
-                mostrarToast('Preencha todos os campos obrigatórios!', 'error');
-                return;
-            }
+            submissions.sort((a, b) => { if (a.status === 'pending' && b.status !== 'pending') return -1; if (a.status !== 'pending' && b.status === 'pending') return 1; return new Date(b.date) - new Date(a.date); });
             
-            try {
-                const id = document.getElementById('tarefa-id').value;
-                
-                if (id) {
-                    await db.collection('tarefas_sistema').doc(id).update(dados);
-                    mostrarToast('✅ Tarefa atualizada!', 'success');
-                } else {
-                    dados.data_criacao = firebase.firestore.FieldValue.serverTimestamp();
-                    await db.collection('tarefas_sistema').add(dados);
-                    mostrarToast('✅ Tarefa criada!', 'success');
-                }
-                
-                fecharModalTarefa();
-                carregarTarefasSistema();
-            } catch (error) {
-                console.error(error);
-                mostrarToast('Erro ao salvar', 'error');
-            }
+            list.innerHTML = submissions.map(sub => {
+                let badge = '<span class="badge badge-pending">⏳ Pendente</span>', actions = '<div class="actions"><button class="btn-approve" onclick="approveSubmission(' + sub.id + ')">✓ Aprovar</button><button class="btn-reject" onclick="rejectSubmission(' + sub.id + ')">✕ Rejeitar</button></div>';
+                if (sub.status === 'approved') { badge = '<span class="badge badge-approved">✓ Aprovado</span>'; actions = ''; }
+                else if (sub.status === 'rejected') { badge = '<span class="badge badge-rejected">✕ Rejeitado</span>'; actions = ''; }
+                return '<div class="item"><div class="item-header"><div><div class="item-title">' + (sub.taskTitle || 'Sem título') + '</div><div class="item-meta"><span class="user-badge">👤 ' + (sub.user || 'SEM ID') + '</span> • ' + new Date(sub.date).toLocaleString() + '</div></div>' + badge + '</div><div style="color:#e53e3e;font-weight:bold;margin-bottom:10px;">💰 R$ ' + (sub.reward || 0).toFixed(2) + ' (' + (sub.coins || 0) + ' moedas)</div>' + (sub.image ? '<img src="' + sub.image + '" onclick="window.open(\'' + sub.image + '\', \'_blank\')">' : '<div style="color:#e53e3e;">⚠️ Sem imagem</div>') + actions + '</div>';
+            }).join('');
         }
 
-        async function carregarTarefasSistema() {
-            try {
-                let query = db.collection('tarefas_sistema').orderBy('ordem', 'asc');
-                if (filtroTarefasSistema === 'ativas') query = query.where('ativa', '==', true);
-                if (filtroTarefasSistema === 'inativas') query = query.where('ativa', '==', false);
-                
-                const snapshot = await query.get();
-                const container = document.getElementById('lista-tarefas-sistema');
-                container.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    container.innerHTML = '<div class="empty-state"><i class="fas fa-tasks"></i><p>Nenhuma tarefa cadastrada</p></div>';
-                    return;
-                }
-                
-                snapshot.forEach(doc => {
-                    const t = doc.data();
-                    const item = document.createElement('div');
-                    item.className = 'item-card';
-                    item.innerHTML = `
-                        <div class="item-avatar" style="background: ${t.cor}20; color: ${t.cor};">${t.icone}</div>
-                        <div class="item-info">
-                            <div class="item-title">
-                                ${t.titulo}
-                                <span class="status-label status-${t.ativa ? 'ativa' : 'inativa'}">${t.ativa ? 'Ativa' : 'Inativa'}</span>
-                            </div>
-                            <div class="item-meta">R$ ${t.valor.toFixed(2)} | Ordem: ${t.ordem}</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-action btn-edit" onclick='abrirModalTarefa(${JSON.stringify({id: doc.id, ...t})})' title="Editar"><i class="fas fa-edit"></i></button>
-                            <button class="btn-action btn-delete" onclick="excluirTarefa('${doc.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
-                        </div>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch(e) { console.error(e); }
+        function renderWithdrawals() {
+            const list = document.getElementById('withdrawalsList');
+            let withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const filterId = document.getElementById('filterWithdrawUserId').value.toUpperCase();
+            if (filterId) withdrawals = withdrawals.filter(w => w.user && w.user.includes(filterId));
+            if (withdrawals.length === 0) { list.innerHTML = '<div class="empty">Nenhuma solicitação de saque</div>'; return; }
+            withdrawals.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const pixTypeLabels = { cpf: 'CPF', cnpj: 'CNPJ', email: 'E-mail', phone: 'Celular', random: 'Chave Aleatória' };
+            list.innerHTML = withdrawals.map(w => {
+                let badge = '<span class="badge badge-pending">⏳ Pendente</span>', actions = '<div class="actions"><button class="btn-approve" onclick="approveWithdrawal(' + w.id + ')">✓ Marcar como Pago</button><button class="btn-reject" onclick="rejectWithdrawal(' + w.id + ')">✕ Recusar</button></div>';
+                if (w.status === 'approved') { badge = '<span class="badge badge-approved">✓ Pago</span>'; actions = ''; }
+                else if (w.status === 'rejected') { badge = '<span class="badge badge-rejected">✕ Recusado</span>'; actions = ''; }
+                return '<div class="item"><div class="item-header"><div><div class="item-title">Saque de R$ ' + (w.amount || 0).toFixed(2) + '</div><div class="item-meta"><span class="user-badge">👤 ' + (w.user || 'SEM ID') + '</span> • ' + new Date(w.date).toLocaleString() + '</div></div>' + badge + '</div><div style="background:#f7fafc;padding:15px;border-radius:8px;margin-top:10px;"><div style="margin-bottom:8px;"><strong>Tipo:</strong> ' + (pixTypeLabels[w.pixType] || w.pixType) + '</div><div style="background:white;padding:10px;border-radius:6px;border:1px solid #e2e8f0;font-family:monospace;font-size:16px;word-break:break-all;">' + (w.pixKey || 'N/A') + '</div><div style="margin-top:8px;color:#718096;font-size:14px;"><strong>Moedas:</strong> ' + ((w.coins || 0).toLocaleString()) + '</div></div>' + actions + '</div>';
+            }).join('');
         }
 
-        async function excluirTarefa(id) {
+        function renderTasks() {
+            const list = document.getElementById('tasksList');
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            if (tasks.length === 0) { list.innerHTML = '<div class="empty">Nenhuma tarefa cadastrada</div>'; return; }
+            list.innerHTML = '<h3 style="margin-bottom:15px;">Tarefas Ativas</h3>' + tasks.map(t => '<div class="item"><div class="item-header"><div><div class="item-title">' + (t.icon || '💳') + ' ' + (t.title || 'Sem título') + '</div><div class="item-meta">' + (t.desc || 'Sem descrição') + '</div></div></div><div style="color:#e53e3e;font-weight:bold;">💰 R$ ' + (t.reward || 0).toFixed(2) + ' • ' + (t.coins || 0) + ' moedas</div><div style="margin-top:10px;color:#718096;font-size:12px;word-break:break-all;">' + (t.link || 'Sem link') + '</div><div class="actions"><button class="btn-delete" onclick="deleteTask(' + t.id + ')">🗑️ Excluir</button></div></div>').join('');
+        }
+
+        function renderUsers() {
+            const list = document.getElementById('usersList');
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const users = {};
+            submissions.forEach(s => { const uid = s.user || 'SEM_ID'; if (!users[uid]) users[uid] = { submissions: [], withdrawals: [], coins: 0, lastActive: s.date }; users[uid].submissions.push(s); if (s.status === 'approved') users[uid].coins += (s.coins || 0); if (new Date(s.date) > new Date(users[uid].lastActive)) users[uid].lastActive = s.date; });
+            withdrawals.forEach(w => { const uid = w.user || 'SEM_ID'; if (!users[uid]) users[uid] = { submissions: [], withdrawals: [], coins: 0, lastActive: w.date }; users[uid].withdrawals.push(w); if (new Date(w.date) > new Date(users[uid].lastActive)) users[uid].lastActive = w.date; });
+            const searchId = document.getElementById('searchUserId').value.toUpperCase();
+            let userList = Object.entries(users);
+            if (searchId) userList = userList.filter(([id, data]) => id.includes(searchId));
+            userList.sort((a, b) => new Date(b[1].lastActive) - new Date(a[1].lastActive));
+            if (userList.length === 0) { list.innerHTML = '<div class="empty">Nenhum usuário encontrado</div>'; return; }
+            list.innerHTML = userList.map(([id, data]) => {
+                const approved = data.submissions.filter(s => s.status === 'approved').length;
+                const pending = data.submissions.filter(s => s.status === 'pending').length;
+                const rejected = data.submissions.filter(s => s.status === 'rejected').length;
+                const totalWithdrawn = data.withdrawals.filter(w => w.status === 'approved').reduce((a, w) => a + (w.amount || 0), 0);
+                const pendingWithdrawals = data.withdrawals.filter(w => w.status === 'pending').length;
+                return '<div class="item"><div class="item-header"><div><span class="user-badge" style="font-size:14px;padding:6px 12px;">👤 ' + id + '</span></div><div style="color:#84cc16;font-weight:bold;font-size:18px;">' + data.coins.toLocaleString() + ' moedas</div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0;text-align:center;"><div style="background:#f7fafc;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;">' + data.submissions.length + '</div><div style="font-size:12px;color:#718096;">Total</div></div><div style="background:#f0fff4;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;color:#48bb78;">' + approved + '</div><div style="font-size:12px;color:#718096;">Aprovadas</div></div><div style="background:#fffaf0;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;color:#ed8936;">' + pending + '</div><div style="font-size:12px;color:#718096;">Pendentes</div></div><div style="background:#fff5f5;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;color:#e53e3e;">' + rejected + '</div><div style="font-size:12px;color:#718096;">Rejeitadas</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f7fafc;padding:10px;border-radius:8px;"><div><div style="color:#718096;font-size:12px;">💸 Total sacado</div><div style="font-weight:bold;color:#2d3748;">R$ ' + totalWithdrawn.toFixed(2) + '</div></div><div style="text-align:right;"><div style="color:#718096;font-size:12px;">⏳ Saques pendentes</div><div style="font-weight:bold;color:#ed8936;">' + pendingWithdrawals + '</div></div></div><div style="margin-top:10px;color:#a0aec0;font-size:12px;text-align:right;">Última atividade: ' + new Date(data.lastActive).toLocaleString() + '</div></div>';
+            }).join('');
+        }
+
+        function approveSubmission(id) {
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const sub = submissions.find(s => s.id === id);
+            if (!sub) return;
+            sub.status = 'approved'; sub.approvedAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(submissions));
+            const userCoins = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + sub.user)) || 0;
+            localStorage.setItem(DB_PREFIX + 'coins_' + sub.user, userCoins + (sub.coins || 0));
+            showToast('✓ Aprovado! ' + sub.coins + ' moedas para ' + sub.user);
+            updateStats(); renderSubmissions();
+        }
+
+        function rejectSubmission(id) {
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const sub = submissions.find(s => s.id === id);
+            if (!sub) return;
+            sub.status = 'rejected'; sub.rejectedAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(submissions));
+            showToast('✕ Comprovante rejeitado');
+            updateStats(); renderSubmissions();
+        }
+
+        function approveWithdrawal(id) {
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const w = withdrawals.find(x => x.id === id);
+            if (!w) return;
+            w.status = 'approved'; w.paidAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'withdrawals', JSON.stringify(withdrawals));
+            showToast('✓ Saque de R$ ' + (w.amount || 0).toFixed(2) + ' marcado como pago');
+            updateStats(); renderWithdrawals();
+        }
+
+        function rejectWithdrawal(id) {
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const w = withdrawals.find(x => x.id === id);
+            if (!w) return;
+            const userCoins = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + w.user)) || 0;
+            localStorage.setItem(DB_PREFIX + 'coins_' + w.user, userCoins + (w.coins || 0));
+            w.status = 'rejected'; w.rejectedAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'withdrawals', JSON.stringify(withdrawals));
+            showToast('✕ Saque recusado e moedas devolvidas');
+            updateStats(); renderWithdrawals();
+        }
+
+        function createTask() {
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const desc = document.getElementById('newTaskDesc').value.trim();
+            const link = document.getElementById('newTaskLink').value.trim();
+            const reward = parseFloat(document.getElementById('newTaskReward').value);
+            const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
+            if (!title || !desc || !link) { showToast('Preencha todos os campos!'); return; }
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks.push({ id: Date.now(), title, desc, link, reward, coins: taskCoins, icon: '💳', iconColor: 'green' });
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+            document.getElementById('newTaskTitle').value = ''; document.getElementById('newTaskDesc').value = ''; document.getElementById('newTaskLink').value = '';
+            showToast('✓ Tarefa criada com sucesso!');
+            renderTasks();
+        }
+
+        function deleteTask(id) {
             if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
-            try {
-                await db.collection('tarefas_sistema').doc(id).delete();
-                mostrarToast('🗑️ Tarefa excluída', 'success');
-                carregarTarefasSistema();
-            } catch(e) {
-                mostrarToast('Erro ao excluir', 'error');
-            }
+            let tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+            showToast('✓ Tarefa excluída');
+            renderTasks();
         }
 
-        function filtrarTarefasSistema(filtro) {
-            filtroTarefasSistema = filtro;
-            document.querySelectorAll('.section-card:first-child .filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            carregarTarefasSistema();
-        }
-
-        // ============================================
-        // TAREFAS PENDENTES (aprovação)
-        // ============================================
-        async function carregarTarefas() {
-            try {
-                let query = db.collection('tarefas_pendentes').orderBy('data_envio', 'desc');
-                if (filtroTarefas !== 'todos') query = query.where('status', '==', filtroTarefas);
-                
-                const snapshot = await query.get();
-                const container = document.getElementById('lista-tarefas');
-                container.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Nenhuma tarefa</p></div>';
-                    return;
-                }
-                
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    const date = d.data_envio ? new Date(d.data_envio.toDate()).toLocaleString('pt-BR') : '';
-                    const item = document.createElement('div');
-                    item.className = 'item-card';
-                    item.innerHTML = `
-                        <div class="item-avatar"><i class="fas fa-user"></i></div>
-                        <div class="item-info">
-                            <div class="item-title">${d.tarefa_nome || 'Tarefa'} <span class="status-label status-${d.status}">${d.status}</span></div>
-                            <div class="item-meta"><i class="fas fa-user"></i> ${d.user_id?.substring(0,20)}... | ${date}</div>
-                        </div>
-                        <div class="item-value">+R$ ${(d.valor||0).toFixed(2)}</div>
-                        <div class="item-actions">
-                            ${d.foto_url ? `<button class="btn-action btn-view" onclick="verImagem('${d.foto_url}')" title="Ver"><i class="fas fa-image"></i></button>` : ''}
-                            ${d.status === 'pendente' ? `
-                                <button class="btn-action btn-approve" onclick="aprovarTarefa('${doc.id}')" title="Aprovar"><i class="fas fa-check"></i></button>
-                                <button class="btn-action btn-reject" onclick="rejeitarTarefa('${doc.id}')" title="Rejeitar"><i class="fas fa-times"></i></button>
-                            ` : ''}
-                        </div>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        async function aprovarTarefa(id) {
-            if (!confirm('Aprovar?')) return;
-            try {
-                const ref = db.collection('tarefas_pendentes').doc(id);
-                const doc = await ref.get();
-                const d = doc.data();
-                
-                await ref.update({ status: 'aprovado', data_aprovacao: firebase.firestore.FieldValue.serverTimestamp() });
-                await db.collection('anonymous_users').doc(d.user_id).update({
-                    saldo: firebase.firestore.FieldValue.increment(d.valor),
-                    saldo_pendente: firebase.firestore.FieldValue.increment(-d.valor),
-                    total_ganho: firebase.firestore.FieldValue.increment(d.valor)
-                });
-                mostrarToast('✅ Aprovado!', 'success');
-                carregarTarefas();
-                carregarEstatisticas();
-            } catch(e) { mostrarToast('Erro', 'error'); }
-        }
-
-        async function rejeitarTarefa(id) {
-            if (!confirm('Rejeitar?')) return;
-            try {
-                const ref = db.collection('tarefas_pendentes').doc(id);
-                const doc = await ref.get();
-                const d = doc.data();
-                
-                await ref.update({ status: 'rejeitado', data_rejeicao: firebase.firestore.FieldValue.serverTimestamp() });
-                await db.collection('anonymous_users').doc(d.user_id).update({
-                    saldo_pendente: firebase.firestore.FieldValue.increment(-d.valor)
-                });
-                mostrarToast('❌ Rejeitado', 'error');
-                carregarTarefas();
-                carregarEstatisticas();
-            } catch(e) { mostrarToast('Erro', 'error'); }
-        }
-
-        function filtrarTarefas(filtro) {
-            filtroTarefas = filtro;
-            document.querySelectorAll('.section-card:nth-child(2) .filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            carregarTarefas();
-        }
-
-        // ============================================
-        // SAQUES
-        // ============================================
-        async function carregarSaques() {
-            try {
-                let query = db.collection('saques_pendentes').orderBy('data_solicitacao', 'desc');
-                if (filtroSaques !== 'todos') query = query.where('status', '==', filtroSaques);
-                
-                const snapshot = await query.get();
-                const container = document.getElementById('lista-saques');
-                container.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Nenhum saque</p></div>';
-                    return;
-                }
-                
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    const date = d.data_solicitacao ? new Date(d.data_solicitacao.toDate()).toLocaleString('pt-BR') : '';
-                    const item = document.createElement('div');
-                    item.className = 'item-card';
-                    item.innerHTML = `
-                        <div class="item-avatar" style="background: linear-gradient(135deg, #00b894 0%, #00a085 100%);"><i class="fas fa-wallet"></i></div>
-                        <div class="item-info">
-                            <div class="item-title">Saque PIX <span class="status-label status-${d.status}">${d.status}</span></div>
-                            <div class="item-meta"><i class="fas fa-key"></i> ${d.chave_pix || 'N/A'} | ${date}</div>
-                        </div>
-                        <div class="item-value" style="color: #6c5ce7;">R$ ${(d.valor||0).toFixed(2)}</div>
-                        <div class="item-actions">
-                            ${d.status === 'pendente' ? `
-                                <button class="btn-action btn-approve" onclick="pagarSaque('${doc.id}')" title="Pagar"><i class="fas fa-check"></i></button>
-                                <button class="btn-action btn-reject" onclick="rejeitarSaque('${doc.id}')" title="Rejeitar"><i class="fas fa-times"></i></button>
-                            ` : ''}
-                        </div>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        async function pagarSaque(id) {
-            if (!confirm('Confirmar pagamento?')) return;
-            try {
-                await db.collection('saques_pendentes').doc(id).update({
-                    status: 'pago', data_pagamento: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                mostrarToast('✅ Pago!', 'success');
-                carregarSaques();
-                carregarEstatisticas();
-            } catch(e) { mostrarToast('Erro', 'error'); }
-        }
-
-        async function rejeitarSaque(id) {
-            if (!confirm('Rejeitar? Valor volta ao usuário.')) return;
-            try {
-                const ref = db.collection('saques_pendentes').doc(id);
-                const doc = await ref.get();
-                const d = doc.data();
-                
-                await ref.update({ status: 'rejeitado', data_rejeicao: firebase.firestore.FieldValue.serverTimestamp() });
-                await db.collection('anonymous_users').doc(d.user_id).update({
-                    saldo: firebase.firestore.FieldValue.increment(d.valor)
-                });
-                mostrarToast('❌ Rejeitado', 'error');
-                carregarSaques();
-                carregarEstatisticas();
-            } catch(e) { mostrarToast('Erro', 'error'); }
-        }
-
-        function filtrarSaques(filtro) {
-            filtroSaques = filtro;
-            document.querySelectorAll('.section-card:nth-child(3) .filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            carregarSaques();
-        }
-
-        // ============================================
-        // CHAT ADMIN
-        // ============================================
-        function abrirChatAdmin() {
-            document.getElementById('chat-overlay').classList.add('active');
-            carregarConversas();
-        }
-
-        function fecharChatAdmin() {
-            document.getElementById('chat-overlay').classList.remove('active');
-            conversaAtual = null;
-            if (chatListenerAtual) { chatListenerAtual(); chatListenerAtual = null; }
-        }
-
-        function iniciarListenerChat() {
-            db.collection('chats').onSnapshot(snapshot => {
-                totalMensagensNaoLidas = 0;
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    if (d.nao_lidas_admin > 0) totalMensagensNaoLidas += d.nao_lidas_admin;
-                });
-                atualizarBadgeChatAdmin();
-                document.getElementById('mensagens-nao-lidas').textContent = totalMensagensNaoLidas;
-            });
-        }
-
-        async function carregarConversas() {
-            const list = document.getElementById('chat-list');
-            list.innerHTML = '<div style="padding: 20px; text-align: center; color: #b2bec3;"><i class="fas fa-spinner fa-spin"></i></div>';
-            
-            try {
-                const snapshot = await db.collection('chats').orderBy('timestamp', 'desc').get();
-                list.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    list.innerHTML = '<div style="padding: 40px; text-align: center; color: #b2bec3;"><i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 10px;"></i><p>Sem conversas</p></div>';
-                    return;
-                }
-                
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    const hora = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
-                    const item = document.createElement('div');
-                    item.className = `chat-item ${d.nao_lidas_admin > 0 ? 'unread' : ''}`;
-                    item.onclick = () => selecionarConversa(doc.id, d);
-                    item.innerHTML = `
-                        <div class="chat-avatar">${d.user_id?.substring(5,7).toUpperCase() || 'U'}</div>
-                        <div class="chat-preview">
-                            <div class="chat-name">Usuário ${d.user_id?.substring(0,15)}... ${d.nao_lidas_admin > 0 ? `<span class="chat-badge">${d.nao_lidas_admin}</span>` : ''}</div>
-                            <div class="chat-last-msg">${d.ultima_mensagem || 'Sem mensagens'}</div>
-                        </div>
-                        <div class="chat-meta"><div class="chat-time">${hora}</div></div>
-                    `;
-                    list.appendChild(item);
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        function filtrarConversas(termo) {
-            document.querySelectorAll('.chat-item').forEach(item => {
-                item.style.display = item.textContent.toLowerCase().includes(termo.toLowerCase()) ? 'flex' : 'none';
-            });
-        }
-
-        async function selecionarConversa(userId, data) {
-            conversaAtual = userId;
-            document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            const main = document.getElementById('chat-main');
-            main.innerHTML = `
-                <div class="chat-main-header">
-                    <div class="chat-user-info">
-                        <div class="chat-user-avatar">${userId.substring(5,7).toUpperCase()}</div>
-                        <div class="chat-user-details"><h4>Usuário ${userId.substring(0,20)}...</h4><p>ID: ${userId}</p></div>
-                    </div>
-                    <button class="btn-close-chat-admin" onclick="fecharChatAdmin()"><i class="fas fa-times"></i></button>
-                </div>
-                <div id="chat-messages-admin" class="chat-messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="chat-input-admin" class="chat-input" placeholder="Digite sua resposta..." onkeypress="if(event.key==='Enter')enviarMensagemAdmin()">
-                    <button class="btn-send-admin" onclick="enviarMensagemAdmin()"><i class="fas fa-paper-plane"></i> Enviar</button>
-                </div>
-            `;
-            
-            carregarMensagens(userId);
-            await db.collection('chats').doc(userId).update({ nao_lidas_admin: 0 });
-            setTimeout(() => document.getElementById('chat-input-admin')?.focus(), 100);
-        }
-
-        function carregarMensagens(userId) {
-            if (chatListenerAtual) chatListenerAtual();
-            const container = document.getElementById('chat-messages-admin');
-            
-            chatListenerAtual = db.collection('chats').doc(userId).collection('mensagens').orderBy('timestamp', 'asc')
-                .onSnapshot(snapshot => {
-                    container.innerHTML = '';
-                    snapshot.forEach(doc => {
-                        const m = doc.data();
-                        const div = document.createElement('div');
-                        div.className = `message ${m.sender === 'admin' ? 'message-sent' : 'message-received'}`;
-                        const time = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
-                        div.innerHTML = `<div class="message-sender">${m.sender === 'admin' ? 'Suporte' : 'Usuário'}</div>${m.texto}<div class="message-time">${time}</div>`;
-                        container.appendChild(div);
-                    });
-                    container.scrollTop = container.scrollHeight;
-                });
-        }
-
-        async function enviarMensagemAdmin() {
-            const input = document.getElementById('chat-input-admin');
-            const texto = input.value.trim();
-            if (!texto || !conversaAtual) return;
-            
-            input.value = '';
-            try {
-                await db.collection('chats').doc(conversaAtual).collection('mensagens').add({
-                    texto: texto, sender: 'admin', sender_name: 'Suporte',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(), lida: false
-                });
-                await db.collection('chats').doc(conversaAtual).update({
-                    ultima_mensagem: texto, ultimo_remetente: 'admin',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: 'respondido', nao_lidas_usuario: firebase.firestore.FieldValue.increment(1)
-                });
-            } catch(e) { mostrarToast('Erro ao enviar', 'error'); }
-        }
-
-        function atualizarBadgeChatAdmin() {
-            const badge = document.getElementById('chat-badge-admin');
-            if (totalMensagensNaoLidas > 0) {
-                badge.textContent = totalMensagensNaoLidas > 99 ? '99+' : totalMensagensNaoLidas;
-                badge.style.display = 'block';
-            } else badge.style.display = 'none';
-        }
-
-        // Utilitários
-        function verImagem(url) {
-            const modal = document.createElement('div');
-            modal.className = 'image-modal';
-            modal.innerHTML = `
-                <div class="image-modal-content">
-                    <button class="image-modal-close" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-times"></i></button>
-                    <img src="${url}" onclick="window.open('${url}', '_blank')">
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function mostrarToast(msg, tipo) {
-            const toast = document.createElement('div');
-            toast.className = `toast ${tipo}`;
-            toast.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function iniciarListeners() {
-            db.collection('tarefas_pendentes').onSnapshot(() => { carregarTarefas(); carregarEstatisticas(); });
-            db.collection('saques_pendentes').onSnapshot(() => { carregarSaques(); carregarEstatisticas(); });
-            db.collection('tarefas_sistema').onSnapshot(() => carregarTarefasSistema());
-        }
+        function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
     </script>
 </body>
 </html>
