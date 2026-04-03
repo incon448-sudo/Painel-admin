@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -52,7 +52,7 @@
         .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: 16px 24px; border-radius: 12px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; }
         .toast.show { opacity: 1; }
 
-        /* NOVO: Estilos para upload de fotos de instrução */
+        /* === NOVO: Upload de fotos de instrução === */
         .photo-upload-area {
             border: 2px dashed #cbd5e0;
             border-radius: 12px;
@@ -87,6 +87,7 @@
             height: 100px;
             object-fit: cover;
             border-radius: 8px;
+            cursor: pointer;
         }
         .photo-preview-item .remove-btn {
             position: absolute;
@@ -216,7 +217,7 @@
                     <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins" value="6000"></div>
                 </div>
 
-                <!-- NOVO: Upload de fotos de instrução -->
+                <!-- === NOVO: Upload de fotos de instrução === -->
                 <div class="form-group">
                     <label>📸 Fotos de Instrução (opcional)</label>
                     <p style="font-size:12px;color:#718096;margin-bottom:10px;">Adicione prints ensinando o usuário como completar a tarefa (ex: onde colocar código, como depositar, etc)</p>
@@ -243,8 +244,8 @@
         </div>
     </div>
 
-    <!-- NOVO: Modal para foto em tela cheia -->
-    <div class="photo-fullscreen" id="photoFullscreen" onclick="closePhotoFullscreen()">
+    <!-- === NOVO: Modal para foto em tela cheia === -->
+    <div class="photo-fullscreen" id="photoFullscreen" onclick="this.style.display='none'">
         <span class="close-btn">&times;</span>
         <img id="fullscreenImg" src="" alt="Foto">
     </div>
@@ -255,7 +256,7 @@
         const DB_PREFIX = 'tarefapix_';
         const ADMIN_PASSWORD = 'admin123';
 
-        // NOVO: Array para armazenar fotos de instrução temporariamente
+        // === NOVO: Array para armazenar fotos de instrução temporariamente ===
         let tempInstructionPhotos = [];
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -328,4 +329,199 @@
                 let badge = '<span class="badge badge-pending">⏳ Pendente</span>', actions = '<div class="actions"><button class="btn-approve" onclick="approveWithdrawal(' + w.id + ')">✓ Marcar como Pago</button><button class="btn-reject" onclick="rejectWithdrawal(' + w.id + ')">✕ Recusar</button></div>';
                 if (w.status === 'approved') { badge = '<span class="badge badge-approved">✓ Pago</span>'; actions = ''; }
                 else if (w.status === 'rejected') { badge = '<span class="badge badge-rejected">✕ Recusado</span>'; actions = ''; }
-                return '<div class="item"><div class="item-header"><div><div class="item-title">Saque de R$ ' + (w.amount || 0).toFixed(2) + '</div><div class="item-meta"><span class="user-badge">👤 ' + (w.user || 'SEM ID') + '</span> • ' + new Date(w.date).toLocaleString() + '</div></div>' + badge + '</div><div style="background:#f7fafc;padding:15px;border-radius:8px;margin-top:10px;"><div style="margin-bottom:8px;"><strong>Tipo:</strong> ' + (pixTypeLabels[w.pixType] || w.pixType) + '</div><
+                return '<div class="item"><div class="item-header"><div><div class="item-title">Saque de R$ ' + (w.amount || 0).toFixed(2) + '</div><div class="item-meta"><span class="user-badge">👤 ' + (w.user || 'SEM ID') + '</span> • ' + new Date(w.date).toLocaleString() + '</div></div>' + badge + '</div><div style="background:#f7fafc;padding:15px;border-radius:8px;margin-top:10px;"><div style="margin-bottom:8px;"><strong>Tipo:</strong> ' + (pixTypeLabels[w.pixType] || w.pixType) + '</div><div style="background:white;padding:10px;border-radius:6px;border:1px solid #e2e8f0;font-family:monospace;font-size:16px;word-break:break-all;">' + (w.pixKey || 'N/A') + '</div><div style="margin-top:8px;color:#718096;font-size:14px;"><strong>Moedas:</strong> ' + ((w.coins || 0).toLocaleString()) + '</div></div>' + actions + '</div>';
+            }).join('');
+        }
+
+        // === NOVO: Funções para manipular fotos de instrução ===
+        function handleInstructionPhotos(event) {
+            const files = Array.from(event.target.files);
+
+            // Limitar a 5 fotos no total
+            const remainingSlots = 5 - tempInstructionPhotos.length;
+            const filesToProcess = files.slice(0, remainingSlots);
+
+            if (files.length > remainingSlots) {
+                showToast('⚠️ Máximo 5 fotos. Apenas ' + remainingSlots + ' adicionadas.');
+            }
+
+            filesToProcess.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempInstructionPhotos.push(e.target.result);
+                    updateInstructionPhotoPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateInstructionPhotoPreview() {
+            const previewDiv = document.getElementById('instructionPhotoPreview');
+            const uploadArea = document.getElementById('instructionPhotoUpload');
+
+            if (tempInstructionPhotos.length > 0) {
+                uploadArea.classList.add('has-photo');
+                uploadArea.innerHTML = '<div>✅ ' + tempInstructionPhotos.length + ' foto(s) adicionada(s)</div><div style="font-size:12px;color:#48bb78;margin-top:5px;">Clique para adicionar mais (máx 5)</div>';
+            } else {
+                uploadArea.classList.remove('has-photo');
+                uploadArea.innerHTML = '<div>📷 Clique para adicionar fotos de instrução</div><div style="font-size:12px;color:#718096;margin-top:5px;">Máximo 5 fotos</div>';
+            }
+
+            previewDiv.innerHTML = tempInstructionPhotos.map((photo, index) => `
+                <div class="photo-preview-item">
+                    <img src="${photo}" onclick="openPhotoFullscreen('${photo}')" alt="Foto ${index + 1}">
+                    <button class="remove-btn" onclick="removeInstructionPhoto(${index})" title="Remover foto">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeInstructionPhoto(index) {
+            tempInstructionPhotos.splice(index, 1);
+            updateInstructionPhotoPreview();
+        }
+
+        function openPhotoFullscreen(src) {
+            document.getElementById('fullscreenImg').src = src;
+            document.getElementById('photoFullscreen').style.display = 'flex';
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('tasksList');
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            if (tasks.length === 0) { list.innerHTML = '<div class="empty">Nenhuma tarefa cadastrada</div>'; return; }
+
+            // Resetar fotos temporárias ao renderizar
+            tempInstructionPhotos = [];
+            updateInstructionPhotoPreview();
+
+            list.innerHTML = '<h3 style="margin-bottom:15px;">Tarefas Ativas</h3>' + tasks.map(t => {
+                let photosHtml = '';
+                if (t.instructionPhotos && t.instructionPhotos.length > 0) {
+                    photosHtml = '<div style="margin-top:10px;"><strong style="font-size:12px;color:#718096;">📸 Fotos de instrução:</strong><div class="instruction-photos-display">' + 
+                        t.instructionPhotos.map((photo, idx) => `<img src="${photo}" onclick="openPhotoFullscreen('${photo}')" alt="Instrução ${idx + 1}">`).join('') + 
+                        '</div></div>';
+                }
+                return '<div class="item"><div class="item-header"><div><div class="item-title">' + (t.icon || '💳') + ' ' + (t.title || 'Sem título') + '</div><div class="item-meta">' + (t.desc || 'Sem descrição') + '</div></div></div><div style="color:#e53e3e;font-weight:bold;">💰 R$ ' + (t.reward || 0).toFixed(2) + ' • ' + (t.coins || 0) + ' moedas</div><div style="margin-top:10px;color:#718096;font-size:12px;word-break:break-all;">' + (t.link || 'Sem link') + '</div>' + photosHtml + '<div class="actions"><button class="btn-delete" onclick="deleteTask(' + t.id + ')">🗑️ Excluir</button></div></div>';
+            }).join('');
+        }
+
+        function renderUsers() {
+            const list = document.getElementById('usersList');
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const users = {};
+            submissions.forEach(s => { const uid = s.user || 'SEM_ID'; if (!users[uid]) users[uid] = { submissions: [], withdrawals: [], coins: 0, lastActive: s.date }; users[uid].submissions.push(s); if (s.status === 'approved') users[uid].coins += (s.coins || 0); if (new Date(s.date) > new Date(users[uid].lastActive)) users[uid].lastActive = s.date; });
+            withdrawals.forEach(w => { const uid = w.user || 'SEM_ID'; if (!users[uid]) users[uid] = { submissions: [], withdrawals: [], coins: 0, lastActive: w.date }; users[uid].withdrawals.push(w); if (new Date(w.date) > new Date(users[uid].lastActive)) users[uid].lastActive = w.date; });
+            const searchId = document.getElementById('searchUserId').value.toUpperCase();
+            let userList = Object.entries(users);
+            if (searchId) userList = userList.filter(([id, data]) => id.includes(searchId));
+            userList.sort((a, b) => new Date(b[1].lastActive) - new Date(a[1].lastActive));
+            if (userList.length === 0) { list.innerHTML = '<div class="empty">Nenhum usuário encontrado</div>'; return; }
+            list.innerHTML = userList.map(([id, data]) => {
+                const approved = data.submissions.filter(s => s.status === 'approved').length;
+                const pending = data.submissions.filter(s => s.status === 'pending').length;
+                const rejected = data.submissions.filter(s => s.status === 'rejected').length;
+                const totalWithdrawn = data.withdrawals.filter(w => w.status === 'approved').reduce((a, w) => a + (w.amount || 0), 0);
+                const pendingWithdrawals = data.withdrawals.filter(w => w.status === 'pending').length;
+                return '<div class="item"><div class="item-header"><div><span class="user-badge" style="font-size:14px;padding:6px 12px;">👤 ' + id + '</span></div><div style="color:#84cc16;font-weight:bold;font-size:18px;">' + data.coins.toLocaleString() + ' moedas</div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0;text-align:center;"><div style="background:#f7fafc;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;">' + data.submissions.length + '</div><div style="font-size:12px;color:#718096;">Total</div></div><div style="background:#f0fff4;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;color:#48bb78;">' + approved + '</div><div style="font-size:12px;color:#718096;">Aprovadas</div></div><div style="background:#fffaf0;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;color:#ed8936;">' + pending + '</div><div style="font-size:12px;color:#718096;">Pendentes</div></div><div style="background:#fff5f5;padding:10px;border-radius:8px;"><div style="font-size:20px;font-weight:bold;color:#e53e3e;">' + rejected + '</div><div style="font-size:12px;color:#718096;">Rejeitadas</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f7fafc;padding:10px;border-radius:8px;"><div><div style="color:#718096;font-size:12px;">💸 Total sacado</div><div style="font-weight:bold;color:#2d3748;">R$ ' + totalWithdrawn.toFixed(2) + '</div></div><div style="text-align:right;"><div style="color:#718096;font-size:12px;">⏳ Saques pendentes</div><div style="font-weight:bold;color:#ed8936;">' + pendingWithdrawals + '</div></div></div><div style="margin-top:10px;color:#a0aec0;font-size:12px;text-align:right;">Última atividade: ' + new Date(data.lastActive).toLocaleString() + '</div></div>';
+            }).join('');
+        }
+
+        function approveSubmission(id) {
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const sub = submissions.find(s => s.id === id);
+            if (!sub) return;
+            sub.status = 'approved'; sub.approvedAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(submissions));
+            const userCoins = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + sub.user)) || 0;
+            localStorage.setItem(DB_PREFIX + 'coins_' + sub.user, userCoins + (sub.coins || 0));
+            showToast('✓ Aprovado! ' + sub.coins + ' moedas para ' + sub.user);
+            updateStats(); renderSubmissions();
+        }
+
+        function rejectSubmission(id) {
+            const submissions = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const sub = submissions.find(s => s.id === id);
+            if (!sub) return;
+            sub.status = 'rejected'; sub.rejectedAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(submissions));
+            showToast('✕ Comprovante rejeitado');
+            updateStats(); renderSubmissions();
+        }
+
+        function approveWithdrawal(id) {
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const w = withdrawals.find(x => x.id === id);
+            if (!w) return;
+            w.status = 'approved'; w.paidAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'withdrawals', JSON.stringify(withdrawals));
+            showToast('✓ Saque de R$ ' + (w.amount || 0).toFixed(2) + ' marcado como pago');
+            updateStats(); renderWithdrawals();
+        }
+
+        function rejectWithdrawal(id) {
+            const withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const w = withdrawals.find(x => x.id === id);
+            if (!w) return;
+            const userCoins = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + w.user)) || 0;
+            localStorage.setItem(DB_PREFIX + 'coins_' + w.user, userCoins + (w.coins || 0));
+            w.status = 'rejected'; w.rejectedAt = new Date().toISOString();
+            localStorage.setItem(DB_PREFIX + 'withdrawals', JSON.stringify(withdrawals));
+            showToast('✕ Saque recusado e moedas devolvidas');
+            updateStats(); renderWithdrawals();
+        }
+
+        function createTask() {
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const desc = document.getElementById('newTaskDesc').value.trim();
+            const link = document.getElementById('newTaskLink').value.trim();
+            const reward = parseFloat(document.getElementById('newTaskReward').value);
+            const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
+            if (!title || !desc || !link) { showToast('Preencha todos os campos!'); return; }
+
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+
+            // === NOVO: Adicionar fotos de instrução à tarefa ===
+            tasks.push({ 
+                id: Date.now(), 
+                title, 
+                desc, 
+                link, 
+                reward, 
+                coins: taskCoins, 
+                icon: '💳', 
+                iconColor: 'green',
+                instructionPhotos: tempInstructionPhotos.length > 0 ? [...tempInstructionPhotos] : []
+            });
+
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+
+            // Limpar formulário e fotos temporárias
+            document.getElementById('newTaskTitle').value = ''; 
+            document.getElementById('newTaskDesc').value = ''; 
+            document.getElementById('newTaskLink').value = '';
+            tempInstructionPhotos = [];
+            updateInstructionPhotoPreview();
+
+            showToast('✓ Tarefa criada com sucesso!');
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+            let tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+            showToast('✓ Tarefa excluída');
+            renderTasks();
+        }
+
+        function showToast(msg) { 
+            const toast = document.getElementById('toast'); 
+            toast.textContent = msg; 
+            toast.classList.add('show'); 
+            setTimeout(() => toast.classList.remove('show'), 3000); 
+        }
+    </script>
+</body>
+</html>
