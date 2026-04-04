@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TarefaPix - Painel Admin</title>
     <style>
-        /* Mantendo seus estilos e adicionando o de upload de tutorial */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background: #f5f5f5; color: #333; }
         .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
@@ -48,10 +47,6 @@
         .btn-save { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: 16px 24px; border-radius: 12px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; }
         .toast.show { opacity: 1; }
-        
-        /* Estilo para o preview da imagem de tutorial */
-        .tutorial-preview-container { margin-top: 10px; border: 2px dashed #cbd5e0; padding: 10px; border-radius: 10px; text-align: center; }
-        #tutorialImgPreview { max-width: 150px; display: none; margin: 10px auto; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -71,7 +66,7 @@
     <div class="admin-container" id="adminContainer">
         <div class="header">
             <h1>📊 TarefaPix Admin</h1>
-            <button class="btn-delete" onclick="logout()">Sair</button>
+            <button class="btn-delete" onclick="location.reload()">Sair</button>
         </div>
 
         <div class="stats">
@@ -85,7 +80,16 @@
             <button class="tab active" onclick="showSection('submissions')">📋 Comprovantes</button>
             <button class="tab" onclick="showSection('withdrawals')">💸 Saques</button>
             <button class="tab" onclick="showSection('tasks')">📝 Tarefas</button>
-            <button class="tab" onclick="showSection('users')">👥 Usuários</button>
+        </div>
+
+        <div class="section" id="section-submissions">
+            <h2>📋 Comprovantes Enviados</h2>
+            <div id="submissionsList"></div>
+        </div>
+
+        <div class="section" id="section-withdrawals" style="display:none;">
+            <h2>💸 Solicitações de Saque</h2>
+            <div id="withdrawalsList"></div>
         </div>
 
         <div class="section" id="section-tasks" style="display:none;">
@@ -93,38 +97,22 @@
             <div style="background:#f7fafc;padding:20px;border-radius:12px;margin-bottom:20px;">
                 <h3 style="margin-bottom:15px;">➕ Nova Tarefa</h3>
                 <div class="form-group"><label>Título</label><input type="text" id="newTaskTitle" placeholder="Ex: Siga no Instagram"></div>
-                <div class="form-group"><label>Descrição/Instruções</label><textarea id="newTaskDesc" placeholder="Explique o que o usuário deve fazer..."></textarea></div>
-                <div class="form-group"><label>Link da Tarefa</label><input type="url" id="newTaskLink" placeholder="https://..."></div>
+                <div class="form-group"><label>Descrição</label><textarea id="newTaskDesc" placeholder="Descreva os passos..."></textarea></div>
+                <div class="form-group"><label>Link</label><input type="url" id="newTaskLink" placeholder="https://..."></div>
                 
                 <div class="form-group">
-                    <label>🖼️ Imagem de Exemplo/Tutorial (Opcional)</label>
-                    <input type="file" id="newTaskTutorialImg" accept="image/*" onchange="previewTutorial(this)">
-                    <div class="tutorial-preview-container">
-                        <p id="tutorialPlaceholder" style="font-size: 12px; color: #718096;">Nenhuma imagem de exemplo selecionada</p>
-                        <img id="tutorialImgPreview">
-                    </div>
+                    <label>🖼️ Foto do Tutorial (Print de onde colocar código, etc)</label>
+                    <input type="file" id="newTaskImg" accept="image/*" onchange="handleTutorialImg(this)">
+                    <img id="tutorialPreview" style="max-width:100px; display:none; margin-top:10px; border-radius:8px;">
                 </div>
 
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                     <div class="form-group"><label>Recompensa (R$)</label><input type="number" id="newTaskReward" step="0.01" value="1.00"></div>
                     <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins" value="1000"></div>
                 </div>
-                <button class="btn-save" id="btnCreateTask" onclick="createTask()">Criar Tarefa</button>
+                <button class="btn-save" onclick="createTask()">Criar Tarefa</button>
             </div>
             <div id="tasksList"></div>
-        </div>
-
-        <div class="section" id="section-submissions">
-            <h2>📋 Comprovantes Enviados</h2>
-            <div id="submissionsList"></div>
-        </div>
-        <div class="section" id="section-withdrawals" style="display:none;">
-            <h2>💸 Solicitações de Saque</h2>
-            <div id="withdrawalsList"></div>
-        </div>
-        <div class="section" id="section-users" style="display:none;">
-            <h2>👥 Usuários</h2>
-            <div id="usersList"></div>
         </div>
     </div>
 
@@ -132,183 +120,41 @@
 
     <script>
         const DB_PREFIX = 'tarefapix_';
-        const ADMIN_PASSWORD = 'admin123';
-        let tutorialBase64 = null;
+        let currentTutorialImg = "";
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            if (document.getElementById('adminPass').value === ADMIN_PASSWORD) {
+            if (document.getElementById('adminPass').value === 'admin123') {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('adminContainer').style.display = 'block';
                 loadData();
-            } else showToast('❌ Senha incorreta!');
+            } else { showToast('❌ Senha incorreta!'); }
         });
 
-        function previewTutorial(input) {
+        function handleTutorialImg(input) {
             const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tutorialBase64 = e.target.result;
-                    document.getElementById('tutorialImgPreview').src = tutorialBase64;
-                    document.getElementById('tutorialImgPreview').style.display = 'block';
-                    document.getElementById('tutorialPlaceholder').style.display = 'none';
-                }
-                reader.readAsDataURL(file);
-            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                currentTutorialImg = reader.result;
+                const prev = document.getElementById('tutorialPreview');
+                prev.src = reader.result;
+                prev.style.display = 'block';
+            };
+            if (file) reader.readAsDataURL(file);
         }
-
-        function createTask() {
-            const title = document.getElementById('newTaskTitle').value.trim();
-            const desc = document.getElementById('newTaskDesc').value.trim();
-            const link = document.getElementById('newTaskLink').value.trim();
-            const reward = parseFloat(document.getElementById('newTaskReward').value);
-            const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
-            
-            if (!title || !desc || !link) { showToast('Preencha os campos obrigatórios!'); return; }
-
-            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            tasks.push({
-                id: Date.now(),
-                title,
-                desc,
-                link,
-                reward,
-                coins: taskCoins,
-                icon: '💳',
-                iconColor: 'green',
-                tutorialImg: tutorialBase64 // Salvando a imagem aqui
-            });
-
-            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
-            
-            // Limpar formulário
-            document.getElementById('newTaskTitle').value = '';
-            document.getElementById('newTaskDesc').value = '';
-            document.getElementById('newTaskLink').value = '';
-            document.getElementById('newTaskTutorialImg').value = '';
-            document.getElementById('tutorialImgPreview').style.display = 'none';
-            document.getElementById('tutorialPlaceholder').style.display = 'block';
-            tutorialBase64 = null;
-
-            showToast('✓ Tarefa criada com sucesso!');
-            renderTasks();
-        }
-
-        // --- FUNÇÕES DE RENDERIZAÇÃO (Mantidas conforme seu original) ---
 
         function showSection(section) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            if(event) event.target.classList.add('active');
-            ['submissions', 'withdrawals', 'tasks', 'users'].forEach(s => document.getElementById('section-' + s).style.display = 'none');
+            event.target.classList.add('active');
+            ['submissions', 'withdrawals', 'tasks'].forEach(s => document.getElementById('section-' + s).style.display = 'none');
             document.getElementById('section-' + section).style.display = 'block';
-            if (section === 'submissions') renderSubmissions();
-            if (section === 'withdrawals') renderWithdrawals();
-            if (section === 'tasks') renderTasks();
-            if (section === 'users') renderUsers();
         }
 
-        function renderTasks() {
-            const list = document.getElementById('tasksList');
-            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            if (tasks.length === 0) { list.innerHTML = '<div class="empty">Nenhuma tarefa cadastrada</div>'; return; }
-            list.innerHTML = tasks.map(t => `
-                <div class="item">
-                    <div class="item-title">${t.title}</div>
-                    <div class="item-meta">${t.desc}</div>
-                    ${t.tutorialImg ? `<img src="${t.tutorialImg}" style="max-width:100px; display:block; margin: 10px 0; border: 1px solid #ccc;">` : '<p style="font-size:11px; color:gray;">Sem imagem de exemplo</p>'}
-                    <div style="color:#e53e3e;font-weight:bold;">R$ ${t.reward.toFixed(2)}</div>
-                    <button class="btn-delete" onclick="deleteTask(${t.id})">Excluir</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteTask(id) {
-            let tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            tasks = tasks.filter(t => t.id !== id);
-            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+        function loadData() {
+            renderSubmissions();
+            renderWithdrawals();
             renderTasks();
-        }
-
-        function renderSubmissions() {
-            const list = document.getElementById('submissionsList');
-            let subs = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
-            list.innerHTML = subs.map(sub => `
-                <div class="item">
-                    <div class="item-header">
-                        <div><strong>${sub.taskTitle}</strong> <br> <span class="user-badge">${sub.user}</span></div>
-                        <span class="badge badge-${sub.status}">${sub.status}</span>
-                    </div>
-                    <img src="${sub.image}" onclick="window.open('${sub.image}')">
-                    ${sub.status === 'pending' ? `
-                        <div class="actions">
-                            <button class="btn-approve" onclick="approveSubmission(${sub.id})">Aprovar</button>
-                            <button class="btn-reject" onclick="rejectSubmission(${sub.id})">Rejeitar</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        function approveSubmission(id) {
-            const subs = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
-            const sub = subs.find(s => s.id === id);
-            if(sub) {
-                sub.status = 'approved';
-                localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(subs));
-                const currentCoins = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + sub.user)) || 0;
-                localStorage.setItem(DB_PREFIX + 'coins_' + sub.user, currentCoins + sub.coins);
-                showToast('Aprovado!');
-                loadData();
-            }
-        }
-
-        function rejectSubmission(id) {
-            const subs = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
-            const sub = subs.find(s => s.id === id);
-            if(sub) {
-                sub.status = 'rejected';
-                localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(subs));
-                showToast('Rejeitado!');
-                loadData();
-            }
-        }
-
-        function renderWithdrawals() {
-            const list = document.getElementById('withdrawalsList');
-            let withdrawals = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
-            list.innerHTML = withdrawals.map(w => `
-                <div class="item">
-                    <div><strong>R$ ${w.amount.toFixed(2)}</strong> - ${w.pixKey} (${w.pixType})</div>
-                    <div class="user-badge">${w.user}</div>
-                    <span class="badge badge-${w.status}">${w.status}</span>
-                    ${w.status === 'pending' ? `
-                        <div class="actions">
-                            <button class="btn-approve" onclick="updateWithdraw(${w.id}, 'approved')">Pago</button>
-                            <button class="btn-reject" onclick="updateWithdraw(${w.id}, 'rejected')">Recusar</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        function updateWithdraw(id, status) {
-            const ws = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
-            const w = ws.find(x => x.id === id);
-            if(w) {
-                w.status = status;
-                if(status === 'rejected') {
-                    const current = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + w.user)) || 0;
-                    localStorage.setItem(DB_PREFIX + 'coins_' + w.user, current + w.coins);
-                }
-                localStorage.setItem(DB_PREFIX + 'withdrawals', JSON.stringify(ws));
-                loadData();
-            }
-        }
-
-        function renderUsers() {
-            const list = document.getElementById('usersList');
-            list.innerHTML = '<p style="padding:20px; text-align:center;">Lista processada por IDs ativos.</p>';
+            updateStats();
         }
 
         function updateStats() {
@@ -319,8 +165,128 @@
             document.getElementById('statWithdrawals').textContent = ws.filter(w => w.status === 'pending').length;
         }
 
-        function loadData() { updateStats(); renderSubmissions(); }
-        function logout() { location.reload(); }
+        function renderSubmissions() {
+            const list = document.getElementById('submissionsList');
+            const subs = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            if (subs.length === 0) { list.innerHTML = '<div class="empty">Nenhum comprovante enviado</div>'; return; }
+            list.innerHTML = subs.map(sub => `
+                <div class="item">
+                    <div class="item-header">
+                        <div><strong>${sub.taskTitle}</strong> <br> <span class="user-badge">${sub.user}</span></div>
+                        <span class="badge badge-${sub.status}">${sub.status}</span>
+                    </div>
+                    <img src="${sub.image}" onclick="window.open('${sub.image}')">
+                    ${sub.status === 'pending' ? `
+                        <div class="actions">
+                            <button class="btn-approve" onclick="updateSubmission(${sub.id}, 'approved')">Aprovar</button>
+                            <button class="btn-reject" onclick="updateSubmission(${sub.id}, 'rejected')">Rejeitar</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function updateSubmission(id, status) {
+            const subs = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
+            const sub = subs.find(s => s.id === id);
+            if (sub) {
+                sub.status = status;
+                if (status === 'approved') {
+                    const currentCoins = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + sub.user)) || 0;
+                    localStorage.setItem(DB_PREFIX + 'coins_' + sub.user, currentCoins + sub.coins);
+                }
+                localStorage.setItem(DB_PREFIX + 'submissions', JSON.stringify(subs));
+                loadData();
+                showToast(status === 'approved' ? '✓ Aprovado!' : '✗ Rejeitado');
+            }
+        }
+
+        function renderWithdrawals() {
+            const list = document.getElementById('withdrawalsList');
+            const ws = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            list.innerHTML = ws.map(w => `
+                <div class="item">
+                    <div><strong>R$ ${w.amount.toFixed(2)}</strong> - ${w.pixKey} (${w.pixType})</div>
+                    <div class="user-badge">${w.user}</div>
+                    <span class="badge badge-${w.status}">${w.status}</span>
+                    ${w.status === 'pending' ? `
+                        <div class="actions">
+                            <button class="btn-approve" onclick="updateWithdraw(${w.id}, 'paid')">Pago</button>
+                            <button class="btn-reject" onclick="updateWithdraw(${w.id}, 'rejected')">Recusar</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function updateWithdraw(id, status) {
+            const ws = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const w = ws.find(x => x.id === id);
+            if (w) {
+                w.status = status;
+                if (status === 'rejected') {
+                    const current = parseInt(localStorage.getItem(DB_PREFIX + 'coins_' + w.user)) || 0;
+                    localStorage.setItem(DB_PREFIX + 'coins_' + w.user, current + w.coins);
+                }
+                localStorage.setItem(DB_PREFIX + 'withdrawals', JSON.stringify(ws));
+                loadData();
+            }
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('tasksList');
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            list.innerHTML = tasks.map(t => `
+                <div class="item">
+                    <div class="item-title">${t.title}</div>
+                    <div class="item-meta">${t.desc}</div>
+                    <div style="color:#e53e3e;font-weight:bold;">R$ ${t.reward.toFixed(2)} (${t.coins} moedas)</div>
+                    ${t.tutorialImg ? `<img src="${t.tutorialImg}" style="width:80px; margin-top:10px;">` : ''}
+                    <button class="btn-delete" style="margin-top:10px;" onclick="deleteTask(${t.id})">Excluir</button>
+                </div>
+            `).join('');
+        }
+
+        function createTask() {
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const desc = document.getElementById('newTaskDesc').value.trim();
+            const link = document.getElementById('newTaskLink').value.trim();
+            const reward = parseFloat(document.getElementById('newTaskReward').value);
+            const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
+            if (!title || !desc || !link) { showToast('Preencha tudo!'); return; }
+
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks.push({ 
+                id: Date.now(), 
+                title, 
+                desc, 
+                link, 
+                reward, 
+                coins: taskCoins, 
+                icon: '💳', 
+                iconColor: 'green',
+                tutorialImg: currentTutorialImg 
+            });
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+
+            document.getElementById('newTaskTitle').value = ''; 
+            document.getElementById('newTaskDesc').value = ''; 
+            document.getElementById('newTaskLink').value = '';
+            document.getElementById('newTaskImg').value = '';
+            document.getElementById('tutorialPreview').style.display = 'none';
+            currentTutorialImg = "";
+
+            showToast('✓ Tarefa criada!');
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            let tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
         function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
     </script>
 </body>
