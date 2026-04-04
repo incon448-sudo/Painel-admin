@@ -119,7 +119,7 @@
                 <div class="form-group"><label>Título</label><input type="text" id="newTaskTitle" placeholder="Ex: Recarregue R$ 5,00 e Ganhe R$ 6,00"></div>
                 <div class="form-group"><label>Descrição</label><textarea id="newTaskDesc" placeholder="Descrição detalhada da tarefa..."></textarea></div>
                 <div class="form-group"><label>Link</label><input type="url" id="newTaskLink" placeholder="https://..."></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+<div class="form-group"><label>🖼️ Foto Tutorial (Upload)</label><input type="file" id="newTaskTutImg" accept="image/*"></div>
                     <div class="form-group"><label>Recompensa (R$)</label><input type="number" id="newTaskReward" step="0.01" value="6"></div>
                     <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins" value="6000"></div>
                 </div>
@@ -297,10 +297,39 @@
             const link = document.getElementById('newTaskLink').value.trim();
             const reward = parseFloat(document.getElementById('newTaskReward').value);
             const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
+            const imgInput = document.getElementById('newTaskTutImg');
+            const file = imgInput ? imgInput.files[0] : null;
+
             if (!title || !desc || !link) { showToast('Preencha todos os campos!'); return; }
-            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            tasks.push({ id: Date.now(), title, desc, link, reward, coins: taskCoins, icon: '💳', iconColor: 'green' });
-            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+
+            const saveTask = (imgData = "") => {
+                const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+                tasks.push({ 
+                    id: Date.now(), title, desc, link, reward, 
+                    coins: taskCoins, icon: '💳', iconColor: 'green',
+                    tutorialImg: imgData 
+                });
+                localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+                
+                // Limpa os campos após salvar
+                document.getElementById('newTaskTitle').value = ''; 
+                document.getElementById('newTaskDesc').value = ''; 
+                document.getElementById('newTaskLink').value = '';
+                if(imgInput) imgInput.value = '';
+                
+                showToast('✓ Tarefa criada com sucesso!');
+                renderTasks();
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => saveTask(e.target.result);
+                reader.readAsDataURL(file);
+            } else {
+                saveTask();
+            }
+        }
+
             document.getElementById('newTaskTitle').value = ''; document.getElementById('newTaskDesc').value = ''; document.getElementById('newTaskLink').value = '';
             showToast('✓ Tarefa criada com sucesso!');
             renderTasks();
