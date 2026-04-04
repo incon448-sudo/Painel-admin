@@ -119,7 +119,7 @@
                 <div class="form-group"><label>Título</label><input type="text" id="newTaskTitle" placeholder="Ex: Recarregue R$ 5,00 e Ganhe R$ 6,00"></div>
                 <div class="form-group"><label>Descrição</label><textarea id="newTaskDesc" placeholder="Descrição detalhada da tarefa..."></textarea></div>
                 <div class="form-group"><label>Link</label><input type="url" id="newTaskLink" placeholder="https://..."></div>
-<div class="form-group"><label>🖼️ Foto Tutorial (Upload)</label><input type="file" id="newTaskTutImg" accept="image/*"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                     <div class="form-group"><label>Recompensa (R$)</label><input type="number" id="newTaskReward" step="0.01" value="6"></div>
                     <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins" value="6000"></div>
                 </div>
@@ -153,7 +153,11 @@
             } else showToast('❌ Senha incorreta!');
         });
 
-        
+        function logout() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminContainer').style.display = 'none';
+            document.getElementById('adminPass').value = '';
+        }
 
         function showSection(section) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -174,18 +178,7 @@
             const users = new Set(submissions.map(s => s.user).filter(u => u));
             document.getElementById('statUsers').textContent = users.size;
             document.getElementById('statPending').textContent = submissions.filter(s => s.status === 'pending').length;
-            document        // Substitua o evento de submit por este:
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Logica sem senha: entra direto
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('adminContainer').style.display = 'block';
-            
-            // Carrega os dados (importante para as tarefas aparecerem)
-            loadData();
-        });
-.getElementById('statApproved').textContent = submissions.filter(s => s.status === 'approved').length;
+            document.getElementById('statApproved').textContent = submissions.filter(s => s.status === 'approved').length;
             document.getElementById('statWithdrawals').textContent = withdrawals.filter(w => w.status === 'pending').length;
         }
 
@@ -304,39 +297,10 @@
             const link = document.getElementById('newTaskLink').value.trim();
             const reward = parseFloat(document.getElementById('newTaskReward').value);
             const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
-            const imgInput = document.getElementById('newTaskTutImg');
-            const file = imgInput ? imgInput.files[0] : null;
-
             if (!title || !desc || !link) { showToast('Preencha todos os campos!'); return; }
-
-            const saveTask = (imgData = "") => {
-                const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-                tasks.push({ 
-                    id: Date.now(), title, desc, link, reward, 
-                    coins: taskCoins, icon: '💳', iconColor: 'green',
-                    tutorialImg: imgData 
-                });
-                localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
-                
-                // Limpa os campos após salvar
-                document.getElementById('newTaskTitle').value = ''; 
-                document.getElementById('newTaskDesc').value = ''; 
-                document.getElementById('newTaskLink').value = '';
-                if(imgInput) imgInput.value = '';
-                
-                showToast('✓ Tarefa criada com sucesso!');
-                renderTasks();
-            };
-
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => saveTask(e.target.result);
-                reader.readAsDataURL(file);
-            } else {
-                saveTask();
-            }
-        }
-
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks.push({ id: Date.now(), title, desc, link, reward, coins: taskCoins, icon: '💳', iconColor: 'green' });
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
             document.getElementById('newTaskTitle').value = ''; document.getElementById('newTaskDesc').value = ''; document.getElementById('newTaskLink').value = '';
             showToast('✓ Tarefa criada com sucesso!');
             renderTasks();
