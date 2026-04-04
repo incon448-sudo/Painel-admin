@@ -7,120 +7,132 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background: #f0f2f5; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { margin-bottom: 20px; color: #1a202c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f5f5f5; color: #333; }
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .login-box { background: white; border-radius: 20px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .admin-container { display: none; padding-bottom: 50px; }
+        .header { background: white; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .nav-tabs { display: flex; gap: 10px; margin-top: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 10px 20px; border: none; background: #edf2f7; border-radius: 10px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+        .tab-btn.active { background: #667eea; color: white; }
+        .content-section { padding: 20px; display: none; }
+        .content-section.active { display: block; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        button { background: #4a90e2; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
-        .task-list { margin-top: 30px; }
-        .task-item { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #4a90e2; position: relative; }
-        .btn-del { position: absolute; right: 10px; top: 10px; background: #e53e3e; padding: 5px 10px; font-size: 12px; width: auto; }
-        #loginScreen { position: fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; align-items:center; justify-content:center; z-index:100; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
+        .btn-primary { background: #667eea; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 25px; font-size: 14px; z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        #toast.show { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div id="loginScreen">
-        <div style="text-align:center; width: 300px;">
-            <h2>Admin TarefaPix</h2>
-            <button onclick="entrar()">ENTRAR NO PAINEL</button>
+    <div id="toast"></div>
+
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <div class="logo"><h1>TarefaPix Admin</h1></div>
+            <div class="input-group"><input type="password" id="adminPass" placeholder="Senha de Acesso" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;"></div>
+            <button class="btn-primary" onclick="checkLogin()">ENTRAR</button>
         </div>
     </div>
 
-    <div class="container" id="adminPanel" style="display:none;">
-        <h2>Criar Nova Tarefa</h2>
-        <div class="form-group">
-            <label>Título</label>
-            <input type="text" id="tTitle" placeholder="Ex: Siga no Instagram">
-        </div>
-        <div class="form-group">
-            <label>Descrição/Instruções</label>
-            <textarea id="tDesc" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-            <label>Link da Tarefa</label>
-            <input type="text" id="tLink" placeholder="https://...">
-        </div>
-        <div class="form-group">
-            <label>Recompensa (R$)</label>
-            <input type="number" id="tReward" value="0.50">
-        </div>
-        <div class="form-group">
-            <label>Foto do Tutorial (Opcional)</label>
-            <input type="file" id="tImg" accept="image/*">
-        </div>
-        <button onclick="createTask()">CRIAR TAREFA NA NUVEM</button>
-
-        <div class="task-list" id="taskList">
-            <h3>Tarefas Ativas</h3>
+    <div class="admin-container" id="adminContainer">
+        <div class="header">
+            <h2>Painel de Controle</h2>
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="showTab('tasks')">Gerenciar Tarefas</button>
+                <button class="tab-btn" onclick="showTab('withdrawals')">Saques</button>
+                <button class="tab-btn" onclick="showTab('users')">Usuários</button>
             </div>
-    </div>
+        </div>
+
+        <section id="tasks" class="content-section active">
+            <div class="card">
+                <h3>+ Nova Tarefa</h3><br>
+                <div class="form-group"><label>Título</label><input type="text" id="newTaskTitle"></div>
+                <div class="form-group"><label>Descrição</label><textarea id="newTaskDesc" rows="3"></textarea></div>
+                <div class="form-group"><label>Link</label><input type="text" id="newTaskLink"></div>
+                <div class="form-group"><label>Valor (R$)</label><input type="number" id="newTaskReward" step="0.01"></div>
+                <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins"></div>
+                <div class="form-group"><label>Foto Tutorial (Upload)</label><input type="file" id="newTaskTutImg" accept="image/*"></div>
+                <button class="btn-primary" onclick="createTask()">CRIAR TAREFA</button>
+            </div>
+            <div id="taskList"></div>
+        </section>
+        
+        </div>
 
     <script>
-        // CONFIGURAÇÃO DO SEU FIREBASE
         const firebaseConfig = { databaseURL: "https://tarefa-pix-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function entrar() {
+        function checkLogin() {
+            // Se quiser entrar direto como pediu antes, deixe apenas as linhas de mostrar o container
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            loadTasks();
+            document.getElementById('adminContainer').style.display = 'block';
+            renderTasks();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
         function createTask() {
-            const title = document.getElementById('tTitle').value;
-            const desc = document.getElementById('tDesc').value;
-            const link = document.getElementById('tLink').value;
-            const reward = parseFloat(document.getElementById('tReward').value);
-            const file = document.getElementById('tImg').files[0];
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const desc = document.getElementById('newTaskDesc').value.trim();
+            const link = document.getElementById('newTaskLink').value.trim();
+            const reward = parseFloat(document.getElementById('newTaskReward').value);
+            const taskCoins = parseInt(document.getElementById('newTaskCoins').value);
+            const imgInput = document.getElementById('newTaskTutImg');
+            const file = imgInput ? imgInput.files[0] : null;
 
-            if(!title || !desc) return alert("Preencha o título e descrição!");
+            if (!title || !desc) { showToast('Preencha os campos!'); return; }
 
-            const pushTask = (imgBase64 = "") => {
-                db.ref('tasks').push({
-                    title, desc, link, reward,
-                    tutorialImg: imgBase64,
-                    date: Date.now()
-                }).then(() => {
-                    alert("Tarefa salva no Firebase!");
-                    location.reload();
+            const save = (imgData = "") => {
+                const newTask = { id: Date.now(), title, desc, link, reward, coins: taskCoins, tutorialImg: imgData };
+                db.ref('tasks').push(newTask).then(() => {
+                    showToast('✓ Tarefa criada no Firebase!');
+                    renderTasks();
                 });
             };
 
-            if(file) {
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => pushTask(e.target.result);
+                reader.onload = (e) => save(e.target.result);
                 reader.readAsDataURL(file);
-            } else {
-                pushTask();
-            }
+            } else { save(); }
         }
 
-        function loadTasks() {
-            db.ref('tasks').on('value', (snap) => {
-                const data = snap.val();
+        function renderTasks() {
+            db.ref('tasks').on('value', (snapshot) => {
+                const tasks = snapshot.val();
                 const list = document.getElementById('taskList');
-                list.innerHTML = '<h3>Tarefas Ativas</h3>';
-                for(let id in data) {
-                    const t = data[id];
-                    list.innerHTML += `
-                        <div class="task-item">
-                            <strong>${t.title}</strong> - R$ ${t.reward.toFixed(2)}
-                            <br><small>${t.desc}</small>
-                            ${t.tutorialImg ? '<br><span style="color:green">✓ Com Foto</span>' : ''}
-                            <button class="btn-del" onclick="deleteTask('${id}')">Excluir</button>
-                        </div>
-                    `;
+                list.innerHTML = '';
+                for (let id in tasks) {
+                    const t = tasks[id];
+                    list.innerHTML += `<div class="card">
+                        <strong>${t.title}</strong> - R$ ${t.reward}<br>
+                        <button onclick="deleteTask('${id}')" style="color:red; background:none; border:none; cursor:pointer;">Excluir</button>
+                    </div>`;
                 }
             });
         }
 
         function deleteTask(id) {
-            if(confirm("Excluir?")) db.ref('tasks/'+id).remove();
+            if (confirm('Excluir tarefa?')) db.ref('tasks/' + id).remove();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
     </script>
 </body>
