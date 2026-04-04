@@ -17,51 +17,28 @@
         .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .admin-container { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
         .header { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { color: #667eea; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .stat-card h3 { color: #718096; font-size: 14px; margin-bottom: 10px; }
         .stat-card .value { font-size: 28px; font-weight: bold; color: #2d3748; }
         .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .section h2 { margin-bottom: 20px; color: #2d3748; display: flex; align-items: center; gap: 10px; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab { padding: 10px 20px; background: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .tab.active { background: #667eea; color: white; }
         .item { border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
-        .item-title { font-weight: bold; color: #2d3748; }
-        .item-meta { color: #718096; font-size: 14px; }
-        .item img { width: 100%; max-width: 300px; border-radius: 8px; margin: 10px 0; cursor: pointer; }
-        .user-badge { background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; font-family: monospace; }
-        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .badge-pending { background: #fffaf0; color: #c05621; }
-        .badge-approved { background: #f0fff4; color: #22543d; }
-        .badge-rejected { background: #fff5f5; color: #c53030; }
-        .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .btn-approve { padding: 10px 20px; background: #48bb78; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .btn-reject { padding: 10px 20px; background: #e53e3e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .btn-delete { padding: 10px 20px; background: #718096; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-save { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
-        .btn-save { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .empty { text-align: center; padding: 40px; color: #718096; }
-        .filter-bar { background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: 16px 24px; border-radius: 12px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; margin-top: 5px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: 16px 24px; border-radius: 12px; opacity: 0; transition: 0.3s; z-index: 2000; }
         .toast.show { opacity: 1; }
-        .photo-upload-area { border: 2px dashed #cbd5e0; border-radius: 12px; padding: 20px; text-align: center; background: #f7fafc; cursor: pointer; margin-bottom: 10px; }
-        .photo-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .photo-preview-item { position: relative; border-radius: 8px; overflow: hidden; }
-        .photo-preview-item img { width: 100%; height: 100px; object-fit: cover; }
-        .photo-preview-item .remove-btn { position: absolute; top: 5px; right: 5px; background: #e53e3e; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
-        .photo-fullscreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 500; justify-content: center; align-items: center; }
-        .photo-fullscreen img { max-width: 100%; max-height: 90vh; }
+        .badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+        .badge-pending { background: #fff3cd; color: #856404; }
     </style>
 </head>
 <body>
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
-            <div class="logo"><h1>🔐 Painel Admin</h1></div>
+            <div class="logo"><h1>🔐 Admin</h1></div>
             <form id="loginForm">
                 <div class="input-group">
                     <label>Senha de Administrador</label>
@@ -74,8 +51,8 @@
 
     <div class="admin-container" id="adminContainer">
         <div class="header">
-            <h1>📊 TarefaPix Admin</h1>
-            <button class="btn-delete" onclick="logout()">Sair</button>
+            <h1>TarefaPix Admin</h1>
+            <button onclick="location.reload()" style="background:none; border:none; color:#667eea; font-weight:bold; cursor:pointer;">Sair</button>
         </div>
 
         <div class="stats">
@@ -92,35 +69,35 @@
         </div>
 
         <div class="section" id="section-submissions">
-            <h2>📋 Comprovantes Enviados</h2>
+            <h2>Comprovantes para Analisar</h2>
             <div id="submissionsList"></div>
         </div>
 
         <div class="section" id="section-withdrawals" style="display:none;">
-            <h2>💸 Solicitações de Saque</h2>
+            <h2>Pedidos de Saque</h2>
             <div id="withdrawalsList"></div>
         </div>
 
         <div class="section" id="section-tasks" style="display:none;">
-            <h2>📝 Criar Tarefa</h2>
-            <div class="form-group"><label>Título</label><input type="text" id="newTaskTitle"></div>
-            <div class="form-group"><label>Descrição</label><textarea id="newTaskDesc"></textarea></div>
-            <div class="form-group"><label>Link</label><input type="url" id="newTaskLink"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div class="form-group"><label>R$</label><input type="number" id="newTaskReward" step="0.01"></div>
-                <div class="form-group"><label>Moedas</label><input type="number" id="newTaskCoins"></div>
+            <h2>Gerenciar Tarefas</h2>
+            <div class="form-group"><input type="text" id="newTaskTitle" placeholder="Título da Tarefa"></div>
+            <div class="form-group"><textarea id="newTaskDesc" placeholder="Descrição"></textarea></div>
+            <div class="form-group"><input type="text" id="newTaskLink" placeholder="Link da Tarefa"></div>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="newTaskReward" placeholder="Valor R$">
+                <input type="number" id="newTaskCoins" placeholder="Moedas">
             </div>
             <button class="btn-save" onclick="createTask()">Criar Tarefa</button>
             <div id="tasksList" style="margin-top:20px;"></div>
         </div>
 
         <div class="section" id="section-users" style="display:none;">
-            <h2>👥 Usuários</h2>
+            <h2>Usuários Cadastrados</h2>
             <div id="usersList"></div>
         </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div id="toast" class="toast"></div>
 
     <script>
         const DB_PREFIX = 'tarefapix_';
@@ -132,74 +109,81 @@
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('adminContainer').style.display = 'block';
                 loadData();
-            } else { alert('❌ Senha incorreta!'); }
+            } else { showToast('❌ Senha incorreta!'); }
         });
-
-        function logout() { location.reload(); }
 
         function showSection(section, e) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            if(e) e.target.classList.add('active');
+            e.target.classList.add('active');
             ['submissions', 'withdrawals', 'tasks', 'users'].forEach(s => document.getElementById('section-' + s).style.display = 'none');
             document.getElementById('section-' + section).style.display = 'block';
             loadData();
         }
 
         function loadData() {
-            updateStats();
-            renderSubmissions();
-            renderWithdrawals();
-            renderTasks();
-            renderUsers();
-        }
-
-        function updateStats() {
+            const users = JSON.parse(localStorage.getItem(DB_PREFIX + 'users') || '{}');
             const sub = JSON.parse(localStorage.getItem(DB_PREFIX + 'submissions') || '[]');
             const wit = JSON.parse(localStorage.getItem(DB_PREFIX + 'withdrawals') || '[]');
+            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+
+            document.getElementById('statUsers').textContent = Object.keys(users).length;
             document.getElementById('statPending').textContent = sub.filter(s => s.status === 'pending').length;
             document.getElementById('statWithdrawals').textContent = wit.filter(w => w.status === 'pending').length;
-        }
 
-        function renderTasks() {
-            const list = document.getElementById('tasksList');
-            const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            list.innerHTML = tasks.map(t => `
-                <div class="item">
-                    <strong>${t.title}</strong> - R$ ${t.reward}
-                    <button class="btn-reject" style="padding:5px; margin-left:10px;" onclick="deleteTask(${t.id})">Excluir</button>
-                </div>
-            `).join('') || 'Nenhuma tarefa.';
-        }
-
-        function deleteTask(id) {
-            let tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            tasks = tasks.filter(t => t.id !== id);
-            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
-            renderTasks();
+            renderTasks(tasks);
+            renderSubmissions(sub);
+            renderWithdrawals(wit);
+            renderUsers(users);
         }
 
         function createTask() {
             const title = document.getElementById('newTaskTitle').value;
             const desc = document.getElementById('newTaskDesc').value;
             const link = document.getElementById('newTaskLink').value;
-            const reward = parseFloat(document.getElementById('newTaskReward').value);
-            const coins = parseInt(document.getElementById('newTaskCoins').value);
-            
-            if(!title || !link) return alert('Preencha os campos!');
+            const reward = parseFloat(document.getElementById('newTaskReward').value) || 0;
+            const coins = parseInt(document.getElementById('newTaskCoins').value) || 0;
+
+            if(!title || !link) return showToast('Preencha os campos!');
 
             const tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
-            tasks.push({ id: Date.now(), title, desc, link, reward, coins });
+            tasks.push({ id: Date.now(), title, desc, link, reward, coins, icon: '📱', iconColor: 'blue', instructionPhotos: [] });
             localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
-            alert('Tarefa Criada!');
-            renderTasks();
+            showToast('✅ Tarefa Criada!');
+            loadData();
         }
 
-        function renderSubmissions() { /* Lógica de renderização simplificada */ }
-        function renderWithdrawals() { /* Lógica de renderização simplificada */ }
-        function renderUsers() { /* Lógica de renderização simplificada */ }
-        
-        // Inicia dados caso o display:block tenha sido setado manualmente
-        if(document.getElementById('adminContainer').style.display === 'block') { loadData(); }
+        function renderTasks(tasks) {
+            const list = document.getElementById('tasksList');
+            list.innerHTML = tasks.map(t => `<div class="item"><strong>${t.title}</strong> (R$ ${t.reward}) <button onclick="deleteTask(${t.id})" style="color:red; float:right; border:none; background:none; cursor:pointer;">Excluir</button></div>`).join('') || 'Sem tarefas.';
+        }
+
+        function deleteTask(id) {
+            let tasks = JSON.parse(localStorage.getItem(DB_PREFIX + 'tasks') || '[]');
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem(DB_PREFIX + 'tasks', JSON.stringify(tasks));
+            loadData();
+        }
+
+        function renderSubmissions(data) {
+            const container = document.getElementById('submissionsList');
+            container.innerHTML = data.map(s => `<div class="item"><p>Usuário: ${s.user}</p><p>Tarefa ID: ${s.taskId}</p><span class="badge badge-pending">${s.status}</span></div>`).join('') || 'Nada pendente.';
+        }
+
+        function renderWithdrawals(data) {
+            const container = document.getElementById('withdrawalsList');
+            container.innerHTML = data.map(w => `<div class="item"><p>Pix: ${w.pixKey}</p><p>Valor: R$ ${w.amount}</p></div>`).join('') || 'Nenhum saque.';
+        }
+
+        function renderUsers(users) {
+            const container = document.getElementById('usersList');
+            container.innerHTML = Object.keys(users).map(u => `<div class="item">User: ${u} - Moedas: ${users[u].coins}</div>`).join('') || 'Sem usuários.';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
     </script>
 </body>
 </html>
