@@ -153,11 +153,7 @@
             } else showToast('❌ Senha incorreta!');
         });
 
-        function logout() {
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('adminContainer').style.display = 'none';
-            document.getElementById('adminPass').value = '';
-        }
+        
 
         function showSection(section) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -178,7 +174,18 @@
             const users = new Set(submissions.map(s => s.user).filter(u => u));
             document.getElementById('statUsers').textContent = users.size;
             document.getElementById('statPending').textContent = submissions.filter(s => s.status === 'pending').length;
-            document.getElementById('statApproved').textContent = submissions.filter(s => s.status === 'approved').length;
+            document        // Substitua o evento de submit por este:
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Logica sem senha: entra direto
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminContainer').style.display = 'block';
+            
+            // Carrega os dados (importante para as tarefas aparecerem)
+            loadData();
+        });
+.getElementById('statApproved').textContent = submissions.filter(s => s.status === 'approved').length;
             document.getElementById('statWithdrawals').textContent = withdrawals.filter(w => w.status === 'pending').length;
         }
 
