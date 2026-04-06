@@ -6,7 +6,6 @@
     <title>Painel Admin - Tarefa Pix</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <!-- REMOVIDO: Firebase Storage -->
     <style>
         * {
             margin: 0;
@@ -506,7 +505,6 @@
             display: none;
         }
         
-        /* NOVO: Estilos para imagem base64 e erro */
         .comprovante-container {
             background: #f8f9fa;
             border-radius: 10px;
@@ -553,6 +551,113 @@
             border-radius: 5px;
             font-size: 0.9rem;
         }
+
+        /* ===== CUPONS ===== */
+        .cupom-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .cupom-stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .cupom-stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .cupom-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .cupom-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .cupom-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .cupom-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #667eea;
+        }
+        
+        .cupom-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px dashed #667eea;
+        }
+        
+        .cupom-info {
+            flex: 1;
+            margin-left: 20px;
+        }
+        
+        .cupom-info p {
+            margin: 3px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .cupom-status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .cupom-status-ativo {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .cupom-status-usado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-copiar {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .btn-excluir-cupom {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -598,6 +703,7 @@
                 <div class="tab active" onclick="switchTab('approvals')">✅ Aprovações</div>
                 <div class="tab" onclick="switchTab('tasks')">📝 Tarefas</div>
                 <div class="tab" onclick="switchTab('saques')">💸 Saques</div>
+                <div class="tab" onclick="switchTab('cupons')">🎫 Cupons</div>
                 <div class="tab" onclick="switchTab('users')">👥 Usuários</div>
             </div>
             
@@ -675,6 +781,57 @@
                 </div>
             </div>
             
+            <!-- ===== NOVA ABA: CUPONS ===== -->
+            <div id="section-cupons" class="section hidden">
+                <h2>🎫 Gerenciar Cupons</h2>
+                
+                <!-- Estatísticas -->
+                <div class="cupom-stats">
+                    <div class="cupom-stat-card">
+                        <div class="cupom-stat-value" id="totalCupons">0</div>
+                        <div class="cupom-stat-label">Total de Cupons</div>
+                    </div>
+                    <div class="cupom-stat-card">
+                        <div class="cupom-stat-value" id="cuponsAtivos">0</div>
+                        <div class="cupom-stat-label">Cupons Ativos</div>
+                    </div>
+                    <div class="cupom-stat-card">
+                        <div class="cupom-stat-value" id="cuponsUsados">0</div>
+                        <div class="cupom-stat-label">Cupons Usados</div>
+                    </div>
+                    <div class="cupom-stat-card">
+                        <div class="cupom-stat-value" id="valorDistribuido">R$ 0</div>
+                        <div class="cupom-stat-label">Valor Distribuído</div>
+                    </div>
+                </div>
+                
+                <!-- Formulário -->
+                <div class="cupom-form">
+                    <h3 style="margin-bottom: 15px; color: #333;">➕ Gerar Novo Cupom</h3>
+                    <div class="form-group">
+                        <label>Código do Cupom (ex: META300)</label>
+                        <input type="text" id="cupomCode" placeholder="Digite o código..." style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="cupomValor" value="1.50" step="0.01" min="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição/Observação</label>
+                        <input type="text" id="cupomDescricao" placeholder="Ex: Sorteio para 300 membros">
+                    </div>
+                    <button class="btn-submit" onclick="gerarCupom()">🎫 Gerar Cupom</button>
+                    <div id="cupomError" class="error-box" style="margin-top: 15px;"></div>
+                    <div id="cupomSuccess" class="success-box" style="margin-top: 15px;"></div>
+                </div>
+                
+                <!-- Lista -->
+                <h3 style="margin-bottom: 15px; color: #333;">📋 Cupons Gerados</h3>
+                <div class="cupom-list" id="cuponsList">
+                    <p style="text-align: center; color: #999;">Carregando...</p>
+                </div>
+            </div>
+            
             <div id="section-users" class="section hidden">
                 <h2>👥 Gerenciar Usuários</h2>
                 <div id="usersList">
@@ -694,20 +851,19 @@
 
     <script>
         // ============================================
-        // CONFIGURAÇÃO FIREBASE - APENAS REALTIME DATABASE
+        // CONFIGURAÇÃO FIREBASE
         // ============================================
         const firebaseConfig = {
-            apiKey: "AIzaSyCVR7V_5zwbCZbyl0P0Xw9-XXXXXXXXXXXX",
+            apiKey: "AIzaSyA1r_PfVzXqDLxI52znZpopBjvlz2W2WzQ",
             authDomain: "tarefa-pix.firebaseapp.com",
             databaseURL: "https://tarefa-pix-default-rtdb.firebaseio.com",
             projectId: "tarefa-pix",
-            storageBucket: "tarefa-pix.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
+            storageBucket: "tarefa-pix.firebasestorage.app",
+            messagingSenderId: "16378804197",
+            appId: "1:16378804197:web:0e95c0fd5440ec4e7e2106"
         };
         
         let database;
-        // REMOVIDO: let storage;
         let currentTab = 'approvals';
         let tutorialFile = null;
         let isFirebaseInitialized = false;
@@ -738,7 +894,6 @@
                 }
                 
                 database = firebase.database();
-                // REMOVIDO: storage = firebase.storage();
                 isFirebaseInitialized = true;
                 
                 database.ref('.info/connected').on('value', (snap) => {
@@ -804,6 +959,7 @@
             loadApprovals();
             loadTasks();
             loadSaques();
+            loadCupons();
             loadUsers();
         }
         
@@ -863,28 +1019,145 @@
         }
         
         // ============================================
-        // FUNÇÃO: Exibir comprovante com suporte a BASE64
+        // CUPONS - NOVO SISTEMA
+        // ============================================
+        function loadCupons() {
+            if (!isFirebaseInitialized) return;
+            
+            database.ref('cupons').on('value', (snapshot) => {
+                const cupons = snapshot.val() || {};
+                const list = document.getElementById('cuponsList');
+                
+                let total = 0, ativos = 0, usados = 0, valorTotal = 0;
+                let html = '';
+                
+                Object.values(cupons).forEach(cupom => {
+                    total++;
+                    if (cupom.status === 'ativo') ativos++;
+                    if (cupom.status === 'usado') {
+                        usados++;
+                        valorTotal += cupom.valor;
+                    }
+                    
+                    html += `
+                        <div class="cupom-item">
+                            <div class="cupom-code">${cupom.codigo}</div>
+                            <div class="cupom-info">
+                                <p><strong>Valor:</strong> R$ ${cupom.valor.toFixed(2)}</p>
+                                <p>${cupom.descricao || 'Sem descrição'}</p>
+                                <p style="font-size: 0.8rem; color: #999;">
+                                    Criado: ${new Date(cupom.dataCriacao).toLocaleString()}
+                                </p>
+                                ${cupom.usadoPor ? `<p style="font-size: 0.8rem; color: #666;">Usado por: ${cupom.usadoPor}</p>` : ''}
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="cupom-status-badge ${cupom.status === 'ativo' ? 'cupom-status-ativo' : 'cupom-status-usado'}">
+                                    ${cupom.status === 'ativo' ? '🟢 ATIVO' : '🔴 USADO'}
+                                </span>
+                                ${cupom.status === 'ativo' ? `
+                                    <button class="btn-copiar" onclick="copiarCupom('${cupom.codigo}')">📋 Copiar</button>
+                                    <button class="btn-excluir-cupom" onclick="excluirCupom('${cupom.codigo}')">🗑️</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('totalCupons').textContent = total;
+                document.getElementById('cuponsAtivos').textContent = ativos;
+                document.getElementById('cuponsUsados').textContent = usados;
+                document.getElementById('valorDistribuido').textContent = 'R$ ' + valorTotal.toFixed(2);
+                
+                list.innerHTML = html || '<p style="text-align: center; color: #999;">Nenhum cupom gerado ainda</p>';
+            });
+        }
+        
+        async function gerarCupom() {
+            const codigo = document.getElementById('cupomCode').value.toUpperCase().trim();
+            const valor = parseFloat(document.getElementById('cupomValor').value);
+            const descricao = document.getElementById('cupomDescricao').value.trim();
+            
+            const errorBox = document.getElementById('cupomError');
+            const successBox = document.getElementById('cupomSuccess');
+            
+            if (!codigo) {
+                errorBox.textContent = '❌ Digite um código!';
+                errorBox.style.display = 'block';
+                successBox.style.display = 'none';
+                return;
+            }
+            
+            if (!valor || valor <= 0) {
+                errorBox.textContent = '❌ Valor inválido!';
+                errorBox.style.display = 'block';
+                successBox.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const cupom = {
+                    codigo: codigo,
+                    valor: valor,
+                    descricao: descricao,
+                    status: 'ativo',
+                    usadoPor: null,
+                    dataCriacao: Date.now(),
+                    dataUso: null
+                };
+                
+                await database.ref('cupons/' + codigo).set(cupom);
+                
+                successBox.textContent = `✅ Cupom "${codigo}" gerado com sucesso!`;
+                successBox.style.display = 'block';
+                errorBox.style.display = 'none';
+                
+                document.getElementById('cupomCode').value = '';
+                document.getElementById('cupomDescricao').value = '';
+                
+                showToast('🎫 Cupom gerado!');
+                
+            } catch (error) {
+                errorBox.textContent = '❌ Erro: ' + error.message;
+                errorBox.style.display = 'block';
+                successBox.style.display = 'none';
+            }
+        }
+        
+        function copiarCupom(codigo) {
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert(`✅ Cupom "${codigo}" copiado!\\n\\nCole no grupo do WhatsApp/Telegram.`);
+            });
+        }
+        
+        async function excluirCupom(codigo) {
+            if (!confirm(`Tem certeza que deseja excluir o cupom "${codigo}"?`)) return;
+            
+            try {
+                await database.ref('cupons/' + codigo).remove();
+                showToast('🗑️ Cupom excluído');
+            } catch (error) {
+                alert('❌ Erro ao excluir: ' + error.message);
+            }
+        }
+        
+        // ============================================
+        // APROVAÇÕES
         // ============================================
         function createComprovanteHTML(imageData, approvalKey) {
             if (!imageData) {
                 return '<p style="color: #999; text-align: center;">Sem comprovante</p>';
             }
             
-            // Detectar tipo de imagem
             let imageSrc = imageData;
             
             if (imageData.startsWith('data:image')) {
-                // Já é base64 completo - usar direto
                 imageSrc = imageData;
             } else if (imageData.startsWith('http')) {
-                // É URL (Firebase Storage antigo ou externo)
                 imageSrc = imageData;
             } else {
-                // É base64 sem prefixo - adicionar
                 imageSrc = 'data:image/jpeg;base64,' + imageData;
             }
             
-            // Criar ID único para esta imagem
             const imgId = 'comp-img-' + approvalKey;
             
             return `
@@ -900,9 +1173,6 @@
             `;
         }
         
-        // ============================================
-        // FUNÇÃO: Tratar erro de carregamento da imagem
-        // ============================================
         function handleImageError(approvalKey, imageData) {
             log('❌ Erro ao carregar imagem: ' + approvalKey);
             
@@ -910,11 +1180,9 @@
             const errorDiv = document.getElementById('error-' + approvalKey);
             
             if (container && errorDiv) {
-                // Esconder imagem quebrada
                 const img = document.getElementById('comp-img-' + approvalKey);
                 if (img) img.style.display = 'none';
                 
-                // Mostrar mensagem de erro com opções
                 errorDiv.innerHTML = `
                     <div class="comprovante-error">
                         <p>⚠️ Não foi possível carregar a imagem</p>
@@ -927,19 +1195,13 @@
             }
         }
         
-        // ============================================
-        // FUNÇÃO: Tentar carregar imagem novamente
-        // ============================================
         function retryImage(approvalKey, imageData) {
             const img = document.getElementById('comp-img-' + approvalKey);
             const errorDiv = document.getElementById('error-' + approvalKey);
             
             if (img && errorDiv) {
-                // Esconder erro
                 errorDiv.style.display = 'none';
-                // Mostrar imagem
                 img.style.display = 'block';
-                // Forçar recarregamento
                 img.src = imageData + '?retry=' + Date.now();
             }
         }
@@ -966,7 +1228,6 @@
         }
         
         function createApprovalCard(key, approval) {
-            // Usar nova função para exibir comprovante (suporta base64 e URL)
             const comprovanteHTML = createComprovanteHTML(approval.comprovanteImage || approval.comprovanteUrl, key);
             
             return `
@@ -1061,7 +1322,6 @@
             log('📸 Arquivo selecionado');
             const file = event.target.files[0];
             if (file) {
-                // Verificar tamanho (máximo 500KB)
                 if (file.size > 500 * 1024) {
                     showError('Imagem muito grande! Máximo 500KB');
                     return;
@@ -1082,9 +1342,6 @@
             }
         }
         
-        // ============================================
-        // CREATE TASK - COM BASE64 NO DATABASE (SEM STORAGE)
-        // ============================================
         async function createTask() {
             log('📝 INICIANDO CRIAÇÃO DE TAREFA...');
             
@@ -1113,7 +1370,6 @@
                 
                 let tutorialImageBase64 = null;
                 
-                // CONVERTER IMAGEM PARA BASE64 (SEM STORAGE)
                 if (tutorialFile) {
                     log('📸 Convertendo imagem para base64...');
                     showUploadStatus('🔄 Processando imagem...');
@@ -1129,7 +1385,6 @@
                     }
                 }
                 
-                // Criar tarefa
                 const taskId = 'TASK_' + Date.now();
                 const taskData = {
                     id: taskId,
@@ -1138,7 +1393,7 @@
                     invest: invest,
                     reward: reward,
                     link: link,
-                    tutorialImage: tutorialImageBase64,  // BASE64!
+                    tutorialImage: tutorialImageBase64,
                     createdAt: Date.now(),
                     createdBy: 'admin'
                 };
@@ -1148,7 +1403,6 @@
                 
                 log('✅ TAREFA CRIADA COM SUCESSO!');
                 
-                // Limpar formulário
                 document.getElementById('taskTitle').value = '';
                 document.getElementById('taskDesc').value = '';
                 document.getElementById('taskInvest').value = '';
@@ -1174,7 +1428,6 @@
             }
         }
         
-        // Função para converter arquivo em base64
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
