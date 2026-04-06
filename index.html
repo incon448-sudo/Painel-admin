@@ -6,7 +6,7 @@
     <title>Painel Admin - Tarefa Pix</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <!-- REMOVIDO: Firebase Storage -->
     <style>
         * {
             margin: 0;
@@ -694,7 +694,7 @@
 
     <script>
         // ============================================
-        // CONFIGURAÇÃO FIREBASE
+        // CONFIGURAÇÃO FIREBASE - APENAS REALTIME DATABASE
         // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyCVR7V_5zwbCZbyl0P0Xw9-XXXXXXXXXXXX",
@@ -707,7 +707,7 @@
         };
         
         let database;
-        let storage;
+        // REMOVIDO: let storage;
         let currentTab = 'approvals';
         let tutorialFile = null;
         let isFirebaseInitialized = false;
@@ -738,7 +738,7 @@
                 }
                 
                 database = firebase.database();
-                storage = firebase.storage();
+                // REMOVIDO: storage = firebase.storage();
                 isFirebaseInitialized = true;
                 
                 database.ref('.info/connected').on('value', (snap) => {
@@ -863,7 +863,7 @@
         }
         
         // ============================================
-        // NOVA FUNÇÃO: Exibir comprovante com suporte a BASE64
+        // FUNÇÃO: Exibir comprovante com suporte a BASE64
         // ============================================
         function createComprovanteHTML(imageData, approvalKey) {
             if (!imageData) {
@@ -872,17 +872,15 @@
             
             // Detectar tipo de imagem
             let imageSrc = imageData;
-            let isBase64 = false;
             
             if (imageData.startsWith('data:image')) {
-                // Já é base64 completo
-                isBase64 = true;
+                // Já é base64 completo - usar direto
+                imageSrc = imageData;
             } else if (imageData.startsWith('http')) {
-                // É URL normal (Firebase Storage ou outro)
-                isBase64 = false;
+                // É URL (Firebase Storage antigo ou externo)
+                imageSrc = imageData;
             } else {
-                // Pode ser base64 sem prefixo
-                isBase64 = true;
+                // É base64 sem prefixo - adicionar
                 imageSrc = 'data:image/jpeg;base64,' + imageData;
             }
             
@@ -895,7 +893,7 @@
                          src="${imageSrc}" 
                          class="comprovante-img"
                          onclick="openImageModal('${imageSrc}')"
-                         onerror="handleImageError('${approvalKey}', '${imageData}', ${isBase64})"
+                         onerror="handleImageError('${approvalKey}', '${imageData}')"
                          alt="Comprovante">
                     <div id="error-${approvalKey}" style="display: none;"></div>
                 </div>
@@ -903,9 +901,9 @@
         }
         
         // ============================================
-        // NOVA FUNÇÃO: Tratar erro de carregamento da imagem
+        // FUNÇÃO: Tratar erro de carregamento da imagem
         // ============================================
-        function handleImageError(approvalKey, imageData, isBase64) {
+        function handleImageError(approvalKey, imageData) {
             log('❌ Erro ao carregar imagem: ' + approvalKey);
             
             const container = document.getElementById('container-' + approvalKey);
@@ -930,7 +928,7 @@
         }
         
         // ============================================
-        // NOVA FUNÇÃO: Tentar carregar imagem novamente
+        // FUNÇÃO: Tentar carregar imagem novamente
         // ============================================
         function retryImage(approvalKey, imageData) {
             const img = document.getElementById('comp-img-' + approvalKey);
@@ -968,8 +966,8 @@
         }
         
         function createApprovalCard(key, approval) {
-            // Usar nova função para exibir comprovante
-            const comprovanteHTML = createComprovanteHTML(approval.comprovanteUrl || approval.comprovanteImage, key);
+            // Usar nova função para exibir comprovante (suporta base64 e URL)
+            const comprovanteHTML = createComprovanteHTML(approval.comprovanteImage || approval.comprovanteUrl, key);
             
             return `
                 <div class="approval-card" id="approval-${key}">
@@ -988,7 +986,7 @@
                     ${comprovanteHTML}
                     
                     <div class="approval-actions">
-                        <button class="btn-approve" onclick="approveTask('${key}', '${approval.userId}', '${approval.taskId}', '${approval.comprovanteUrl || approval.comprovanteImage || ''}')">
+                        <button class="btn-approve" onclick="approveTask('${key}', '${approval.userId}', '${approval.taskId}', '${approval.comprovanteImage || approval.comprovanteUrl || ''}')">
                             ✅ Aprovar
                         </button>
                         <button class="btn-reject" onclick="rejectTask('${key}', '${approval.userId}', '${approval.taskId}')">
@@ -999,7 +997,7 @@
             `;
         }
         
-        async function approveTask(approvalKey, userId, taskId, comprovanteUrl) {
+        async function approveTask(approvalKey, userId, taskId, comprovanteImage) {
             try {
                 const taskSnapshot = await database.ref('tasks/' + taskId).once('value');
                 const task = taskSnapshot.val();
@@ -1025,7 +1023,7 @@
                     taskId: taskId,
                     reward: task.reward,
                     approvedAt: Date.now(),
-                    comprovanteUrl: comprovanteUrl
+                    comprovanteImage: comprovanteImage
                 });
                 
                 showToast('✅ Tarefa aprovada!');
@@ -1063,6 +1061,12 @@
             log('📸 Arquivo selecionado');
             const file = event.target.files[0];
             if (file) {
+                // Verificar tamanho (máximo 500KB)
+                if (file.size > 500 * 1024) {
+                    showError('Imagem muito grande! Máximo 500KB');
+                    return;
+                }
+                
                 tutorialFile = file;
                 log('Arquivo: ' + file.name + ' (' + (file.size/1024).toFixed(2) + ' KB)');
                 
@@ -1072,14 +1076,14 @@
                     document.getElementById('tutorialPreview').style.display = 'block';
                     document.getElementById('tutorialUploadText').style.display = 'none';
                     document.getElementById('tutorialUploadArea').classList.add('has-file');
-                    showUploadStatus('📷 Imagem selecionada: ' + file.name);
+                    showUploadStatus('📷 Imagem pronta (base64)');
                 };
                 reader.readAsDataURL(file);
             }
         }
         
         // ============================================
-        // CREATE TASK - COM UPLOAD CORRIGIDO
+        // CREATE TASK - COM BASE64 NO DATABASE (SEM STORAGE)
         // ============================================
         async function createTask() {
             log('📝 INICIANDO CRIAÇÃO DE TAREFA...');
@@ -1107,58 +1111,22 @@
                 btn.innerHTML = '<span class="loading"></span> Criando...';
                 btn.disabled = true;
                 
-                let tutorialImageUrl = null;
+                let tutorialImageBase64 = null;
                 
-                // UPLOAD DA IMAGEM - COM TIMEOUT E TRATAMENTO DE ERRO MELHORADO
+                // CONVERTER IMAGEM PARA BASE64 (SEM STORAGE)
                 if (tutorialFile) {
-                    log('📸 Iniciando upload da imagem...');
-                    showUploadStatus('⬆️ Enviando imagem...');
+                    log('📸 Convertendo imagem para base64...');
+                    showUploadStatus('🔄 Processando imagem...');
                     
                     try {
-                        // Verificar se storage está disponível
-                        if (!storage) {
-                            throw new Error('Storage não disponível');
-                        }
-                        
-                        // Criar nome do arquivo
-                        const timestamp = Date.now();
-                        const safeName = tutorialFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
-                        const fileName = 'tutoriais/' + timestamp + '_' + safeName;
-                        
-                        log('Caminho: ' + fileName);
-                        
-                        const storageRef = storage.ref(fileName);
-                        
-                        // Fazer upload com metadata
-                        const metadata = {
-                            contentType: tutorialFile.type,
-                            customMetadata: {
-                                'uploadedBy': 'admin',
-                                'timestamp': timestamp.toString()
-                            }
-                        };
-                        
-                        log('Enviando arquivo...');
-                        const uploadTask = await storageRef.put(tutorialFile, metadata);
-                        
-                        log('Upload completo, obtendo URL...');
-                        tutorialImageUrl = await storageRef.getDownloadURL();
-                        
-                        log('✅ URL obtida: ' + tutorialImageUrl.substring(0, 50) + '...');
-                        showUploadStatus('✅ Imagem enviada com sucesso!');
-                        
-                    } catch (uploadError) {
-                        log('❌ ERRO NO UPLOAD: ' + uploadError.message);
-                        log('Código: ' + uploadError.code);
-                        
-                        // Mostrar erro específico mas continuar sem imagem
-                        showUploadStatus('⚠️ Erro no upload: ' + uploadError.message + '. Continuando sem imagem...');
-                        
-                        // Aguardar 2 segundos para usuário ver a mensagem
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        tutorialImageBase64 = await fileToBase64(tutorialFile);
+                        log('✅ Imagem convertida! Tamanho: ' + (tutorialImageBase64.length/1024).toFixed(2) + ' KB');
+                        showUploadStatus('✅ Imagem pronta!');
+                    } catch (imgError) {
+                        log('❌ Erro na imagem: ' + imgError.message);
+                        showUploadStatus('⚠️ Erro na imagem, continuando sem...');
+                        tutorialImageBase64 = null;
                     }
-                } else {
-                    log('ℹ️ Sem imagem para enviar');
                 }
                 
                 // Criar tarefa
@@ -1170,15 +1138,15 @@
                     invest: invest,
                     reward: reward,
                     link: link,
-                    tutorialImage: tutorialImageUrl,
+                    tutorialImage: tutorialImageBase64,  // BASE64!
                     createdAt: Date.now(),
                     createdBy: 'admin'
                 };
                 
-                log('💾 Salvando tarefa...');
+                log('💾 Salvando tarefa no Realtime Database...');
                 await database.ref('tasks/' + taskId).set(taskData);
                 
-                log('✅ TAREFA CRIADA!');
+                log('✅ TAREFA CRIADA COM SUCESSO!');
                 
                 // Limpar formulário
                 document.getElementById('taskTitle').value = '';
@@ -1193,7 +1161,7 @@
                 document.getElementById('uploadStatus').style.display = 'none';
                 tutorialFile = null;
                 
-                showSuccess('Tarefa criada com sucesso!' + (tutorialImageUrl ? ' (com imagem)' : ' (sem imagem)'));
+                showSuccess('Tarefa criada com sucesso!' + (tutorialImageBase64 ? ' (com imagem base64)' : ' (sem imagem)'));
                 showToast('✅ Tarefa criada!');
                 
             } catch (error) {
@@ -1204,6 +1172,16 @@
                 btn.innerHTML = '✅ Criar Tarefa';
                 btn.disabled = false;
             }
+        }
+        
+        // Função para converter arquivo em base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
         }
         
         function loadTasks() {
@@ -1226,7 +1204,7 @@
                             <div class="task-info">
                                 <h4>${task.title}</h4>
                                 <p>${task.description}</p>
-                                ${task.tutorialImage ? '<span style="color: #17a2b8;">📸 Com tutorial</span>' : ''}
+                                ${task.tutorialImage ? '<span style="color: #17a2b8;">📸 Com tutorial (base64)</span>' : ''}
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <div class="task-stats" style="margin-right: 15px;">
