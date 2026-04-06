@@ -57,11 +57,6 @@
             font-size: 1rem;
         }
         
-        .login-box input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
         .login-box button {
             width: 100%;
             padding: 15px;
@@ -204,6 +199,11 @@
             cursor: pointer;
             transition: all 0.3s;
             background: #f8f9fa;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
         .upload-area:hover {
@@ -231,10 +231,16 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 1rem;
+            width: 100%;
         }
         
-        .btn-submit:hover {
+        .btn-submit:hover:not(:disabled) {
             opacity: 0.9;
+        }
+        
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
         
         .approval-card {
@@ -243,16 +249,6 @@
             padding: 20px;
             margin-bottom: 15px;
             border-left: 5px solid #ffc107;
-        }
-        
-        .approval-card.approved {
-            border-left-color: #28a745;
-            opacity: 0.7;
-        }
-        
-        .approval-card.rejected {
-            border-left-color: #dc3545;
-            opacity: 0.7;
         }
         
         .approval-header {
@@ -325,10 +321,6 @@
         .task-info p {
             color: #666;
             font-size: 0.9rem;
-        }
-        
-        .task-stats {
-            text-align: right;
         }
         
         .task-stats .reward {
@@ -422,9 +414,60 @@
             max-width: 100%;
             border-radius: 10px;
         }
+        
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .error-box.show {
+            display: block;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .success-box.show {
+            display: block;
+        }
+        
+        .firebase-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 9999;
+        }
+        
+        .firebase-status.connected {
+            background: #28a745;
+            color: white;
+        }
+        
+        .firebase-status.disconnected {
+            background: #dc3545;
+            color: white;
+        }
     </style>
 </head>
 <body>
+    <div class="firebase-status disconnected" id="firebaseStatus">🔴 Firebase Desconectado</div>
+    
     <!-- Tela de Login -->
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
@@ -432,6 +475,7 @@
             <input type="text" id="adminUser" placeholder="Usuário">
             <input type="password" id="adminPass" placeholder="Senha">
             <button onclick="login()">Entrar</button>
+            <div id="loginError" style="color: #dc3545; margin-top: 10px; display: none;"></div>
         </div>
     </div>
     
@@ -484,28 +528,28 @@
                 <h2>📝 Criar Nova Tarefa</h2>
                 
                 <div class="form-group">
-                    <label>Título da Tarefa</label>
+                    <label>Título da Tarefa *</label>
                     <input type="text" id="taskTitle" placeholder="Ex: Recarregar R$5 e ganhe R$6">
                 </div>
                 
                 <div class="form-group">
-                    <label>Descrição</label>
+                    <label>Descrição *</label>
                     <textarea id="taskDesc" rows="3" placeholder="Descreva o que o usuário precisa fazer..."></textarea>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
-                        <label>Valor a Investir (R$)</label>
+                        <label>Valor a Investir (R$) *</label>
                         <input type="number" id="taskInvest" step="0.01" placeholder="5.00">
                     </div>
                     <div class="form-group">
-                        <label>Recompensa (R$)</label>
+                        <label>Recompensa (R$) *</label>
                         <input type="number" id="taskReward" step="0.01" placeholder="6.00">
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>Link da Plataforma</label>
+                    <label>Link da Plataforma *</label>
                     <input type="url" id="taskLink" placeholder="https://...">
                 </div>
                 
@@ -521,13 +565,16 @@
                     <input type="file" id="tutorialFile" accept="image/*" style="display:none;" onchange="handleTutorialFile(event)">
                 </div>
                 
-                <button class="btn-submit" onclick="createTask()">✅ Criar Tarefa</button>
+                <button class="btn-submit" id="btnCreateTask" onclick="createTask()">✅ Criar Tarefa</button>
+                
+                <div id="errorBox" class="error-box"></div>
+                <div id="successBox" class="success-box"></div>
                 
                 <hr style="margin: 40px 0; border: none; border-top: 2px solid #e0e0e0;">
                 
                 <h2>📋 Tarefas Existentes</h2>
                 <div class="task-list" id="tasksList">
-                    <!-- Lista dinâmica -->
+                    <p style="text-align: center; color: #999;">Carregando...</p>
                 </div>
             </div>
             
@@ -559,7 +606,9 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Configuração Firebase
+        // ============================================
+        // CONFIGURAÇÃO FIREBASE - SUBSTITUA COM SUAS CREDENCIAIS REAIS
+        // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyCVR7V_5zwbCZbyl0P0Xw9-XXXXXXXXXXXX",
             authDomain: "tarefa-pix.firebaseapp.com",
@@ -570,21 +619,74 @@
             appId: "1:123456789:web:abcdef123456"
         };
         
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const storage = firebase.storage();
-        
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        let database;
+        let storage;
         let currentTab = 'approvals';
         let tutorialFile = null;
+        let isFirebaseInitialized = false;
         
-        // Verificar login ao carregar
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        
+        function initFirebase() {
+            try {
+                console.log('🔄 Inicializando Firebase...');
+                
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                
+                database = firebase.database();
+                storage = firebase.storage();
+                isFirebaseInitialized = true;
+                
+                // Testar conexão
+                database.ref('.info/connected').on('value', (snap) => {
+                    const connected = snap.val();
+                    const statusEl = document.getElementById('firebaseStatus');
+                    if (connected) {
+                        statusEl.textContent = '🟢 Firebase Conectado';
+                        statusEl.classList.remove('disconnected');
+                        statusEl.classList.add('connected');
+                        console.log('✅ Firebase conectado!');
+                    } else {
+                        statusEl.textContent = '🔴 Firebase Desconectado';
+                        statusEl.classList.remove('connected');
+                        statusEl.classList.add('disconnected');
+                        console.log('❌ Firebase desconectado');
+                    }
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Erro ao inicializar Firebase:', error);
+                showError('Erro ao conectar com Firebase: ' + error.message);
+                return false;
+            }
+        }
+        
         window.onload = function() {
+            console.log('🚀 Página carregada');
+            
+            if (!initFirebase()) {
+                document.getElementById('loginError').textContent = 'Erro ao conectar com Firebase. Verifique sua internet.';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+            
             const isLogged = localStorage.getItem('adminLogged');
             if (isLogged === 'true') {
                 showMainPanel();
             }
         };
+        
+        // ============================================
+        // AUTENTICAÇÃO
+        // ============================================
         
         function login() {
             const user = document.getElementById('adminUser').value;
@@ -594,7 +696,8 @@
                 localStorage.setItem('adminLogged', 'true');
                 showMainPanel();
             } else {
-                showToast('❌ Usuário ou senha incorretos!');
+                document.getElementById('loginError').textContent = 'Usuário ou senha incorretos!';
+                document.getElementById('loginError').style.display = 'block';
             }
         }
         
@@ -607,7 +710,6 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainPanel').classList.remove('hidden');
             
-            // Carregar dados
             loadStats();
             loadApprovals();
             loadTasks();
@@ -617,38 +719,66 @@
         
         function switchTab(tab) {
             currentTab = tab;
-            
-            // Atualizar tabs
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
-            
-            // Mostrar/esconder seções
             document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
             document.getElementById('section-' + tab).classList.remove('hidden');
         }
         
-        // Carregar estatísticas
+        // ============================================
+        // FUNÇÕES DE ERRO/SUCESSO
+        // ============================================
+        
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = '❌ ' + message;
+            errorBox.classList.add('show');
+            document.getElementById('successBox').classList.remove('show');
+            
+            setTimeout(() => {
+                errorBox.classList.remove('show');
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            const successBox = document.getElementById('successBox');
+            successBox.textContent = '✅ ' + message;
+            successBox.classList.add('show');
+            document.getElementById('errorBox').classList.remove('show');
+            
+            setTimeout(() => {
+                successBox.classList.remove('show');
+            }, 3000);
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // ============================================
+        // ESTATÍSTICAS
+        // ============================================
+        
         function loadStats() {
-            // Total de usuários
+            if (!isFirebaseInitialized) return;
+            
             database.ref('users').on('value', (snapshot) => {
                 const users = snapshot.val() || {};
                 document.getElementById('totalUsers').textContent = Object.keys(users).length;
                 
-                // Total em circulação
                 let total = 0;
-                Object.values(users).forEach(u => {
-                    total += u.balance || 0;
-                });
+                Object.values(users).forEach(u => total += u.balance || 0);
                 document.getElementById('totalBalance').textContent = 'R$ ' + total.toFixed(2);
             });
             
-            // Tarefas pendentes
             database.ref('pendingApprovals').on('value', (snapshot) => {
                 const approvals = snapshot.val() || {};
                 document.getElementById('pendingTasks').textContent = Object.keys(approvals).length;
             });
             
-            // Saques pendentes
             database.ref('saques').on('value', (snapshot) => {
                 const saques = snapshot.val() || {};
                 const pending = Object.values(saques).filter(s => s.status === 'pending').length;
@@ -656,8 +786,13 @@
             });
         }
         
-        // Carregar aprovações pendentes
+        // ============================================
+        // APROVAÇÕES
+        // ============================================
+        
         function loadApprovals() {
+            if (!isFirebaseInitialized) return;
+            
             database.ref('pendingApprovals').on('value', (snapshot) => {
                 const approvals = snapshot.val() || {};
                 const list = document.getElementById('approvalsList');
@@ -673,6 +808,9 @@
                     html += createApprovalCard(key, approval);
                 });
                 list.innerHTML = html;
+            }, (error) => {
+                console.error('Erro ao carregar aprovações:', error);
+                showError('Erro ao carregar aprovações: ' + error.message);
             });
         }
         
@@ -708,33 +846,27 @@
             `;
         }
         
-        // Aprovar tarefa
         async function approveTask(approvalKey, userId, taskId, comprovanteUrl) {
             try {
-                // Buscar dados da tarefa
                 const taskSnapshot = await database.ref('tasks/' + taskId).once('value');
                 const task = taskSnapshot.val();
                 
                 if (!task) {
-                    showToast('❌ Tarefa não encontrada');
+                    showError('Tarefa não encontrada');
                     return;
                 }
                 
-                // Atualizar status do userTask
                 await database.ref('userTasks/' + userId + '/' + taskId).update({
                     status: 'approved',
                     approvedAt: Date.now()
                 });
                 
-                // Adicionar saldo ao usuário
                 const userSnapshot = await database.ref('users/' + userId + '/balance').once('value');
                 const currentBalance = userSnapshot.val() || 0;
                 await database.ref('users/' + userId + '/balance').set(currentBalance + task.reward);
                 
-                // Remover da fila de aprovações
                 await database.ref('pendingApprovals/' + approvalKey).remove();
                 
-                // Adicionar ao histórico de aprovações
                 await database.ref('approvedTasks/' + approvalKey).set({
                     userId: userId,
                     taskId: taskId,
@@ -743,35 +875,29 @@
                     comprovanteUrl: comprovanteUrl
                 });
                 
-                showToast('✅ Tarefa aprovada! R$ ' + task.reward.toFixed(2) + ' adicionado ao usuário.');
+                showToast('✅ Tarefa aprovada! R$ ' + task.reward.toFixed(2) + ' adicionado.');
                 
             } catch (error) {
                 console.error('Erro ao aprovar:', error);
-                showToast('❌ Erro ao aprovar tarefa');
+                showError('Erro ao aprovar: ' + error.message);
             }
         }
         
-        // Rejeitar tarefa
         async function rejectTask(approvalKey, userId, taskId) {
             try {
-                // Atualizar status do userTask
                 await database.ref('userTasks/' + userId + '/' + taskId).update({
                     status: 'rejected',
                     rejectedAt: Date.now()
                 });
                 
-                // Remover da fila de aprovações
                 await database.ref('pendingApprovals/' + approvalKey).remove();
-                
                 showToast('❌ Tarefa rejeitada');
                 
             } catch (error) {
-                console.error('Erro ao rejeitar:', error);
-                showToast('❌ Erro ao rejeitar tarefa');
+                showError('Erro ao rejeitar: ' + error.message);
             }
         }
         
-        // Abrir imagem em modal
         function openImageModal(url) {
             document.getElementById('modalImage').src = url;
             document.getElementById('imageModal').classList.add('active');
@@ -781,7 +907,10 @@
             document.getElementById('imageModal').classList.remove('active');
         }
         
-        // Selecionar arquivo de tutorial
+        // ============================================
+        // CRIAR TAREFA - FUNÇÃO PRINCIPAL CORRIGIDA
+        // ============================================
+        
         function handleTutorialFile(event) {
             const file = event.target.files[0];
             if (file) {
@@ -798,38 +927,74 @@
             }
         }
         
-        // Criar tarefa
         async function createTask() {
-            const title = document.getElementById('taskTitle').value;
-            const desc = document.getElementById('taskDesc').value;
-            const invest = parseFloat(document.getElementById('taskInvest').value);
-            const reward = parseFloat(document.getElementById('taskReward').value);
-            const link = document.getElementById('taskLink').value;
+            console.log('📝 Iniciando criação de tarefa...');
             
-            if (!title || !desc || !invest || !reward || !link) {
-                showToast('❌ Preencha todos os campos!');
+            // Verificar Firebase
+            if (!isFirebaseInitialized) {
+                showError('Firebase não está inicializado. Recarregue a página.');
                 return;
             }
             
-            const btn = document.querySelector('.btn-submit');
-            const originalText = btn.textContent;
+            // Pegar valores
+            const title = document.getElementById('taskTitle').value.trim();
+            const desc = document.getElementById('taskDesc').value.trim();
+            const invest = parseFloat(document.getElementById('taskInvest').value);
+            const reward = parseFloat(document.getElementById('taskReward').value);
+            const link = document.getElementById('taskLink').value.trim();
+            
+            console.log('Dados:', { title, desc, invest, reward, link });
+            
+            // Validar
+            if (!title) {
+                showError('Digite o título da tarefa');
+                return;
+            }
+            if (!desc) {
+                showError('Digite a descrição');
+                return;
+            }
+            if (!invest || invest <= 0) {
+                showError('Digite um valor de investimento válido');
+                return;
+            }
+            if (!reward || reward <= 0) {
+                showError('Digite uma recompensa válida');
+                return;
+            }
+            if (!link) {
+                showError('Digite o link da plataforma');
+                return;
+            }
+            
+            // Desabilitar botão
+            const btn = document.getElementById('btnCreateTask');
             btn.innerHTML = '<span class="loading"></span> Criando...';
             btn.disabled = true;
             
             try {
                 let tutorialImageUrl = null;
                 
-                // Upload da imagem do tutorial se existir
+                // Upload da imagem se existir
                 if (tutorialFile) {
-                    const fileName = `tutoriais/${Date.now()}_${tutorialFile.name}`;
-                    const storageRef = storage.ref(fileName);
-                    await storageRef.put(tutorialFile);
-                    tutorialImageUrl = await storageRef.getDownloadURL();
+                    console.log('📸 Fazendo upload da imagem...');
+                    try {
+                        const fileName = 'tutoriais/' + Date.now() + '_' + tutorialFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                        const storageRef = storage.ref(fileName);
+                        
+                        console.log('Enviando para:', fileName);
+                        await storageRef.put(tutorialFile);
+                        tutorialImageUrl = await storageRef.getDownloadURL();
+                        console.log('✅ Upload completo. URL:', tutorialImageUrl);
+                    } catch (uploadError) {
+                        console.error('⚠️ Erro no upload (continuando sem imagem):', uploadError);
+                        showError('Erro no upload da imagem: ' + uploadError.message + '. Continuando sem imagem...');
+                    }
                 }
                 
-                // Criar tarefa no database
+                // Criar tarefa
                 const taskId = 'TASK_' + Date.now();
-                await database.ref('tasks/' + taskId).set({
+                const taskData = {
                     id: taskId,
                     title: title,
                     description: desc,
@@ -837,8 +1002,30 @@
                     reward: reward,
                     link: link,
                     tutorialImage: tutorialImageUrl,
-                    createdAt: Date.now()
-                });
+                    createdAt: Date.now(),
+                    createdBy: 'admin'
+                };
+                
+                console.log('💾 Salvando tarefa no database...', taskData);
+                
+                // TENTAR SALVAR COM TRATAMENTO DE ERRO ESPECÍFICO
+                try {
+                    await database.ref('tasks/' + taskId).set(taskData);
+                    console.log('✅ Tarefa salva com sucesso!');
+                } catch (dbError) {
+                    console.error('❌ Erro ao salvar no database:', dbError);
+                    
+                    // Verificar se é erro de permissão
+                    if (dbError.message && dbError.message.includes('PERMISSION_DENIED')) {
+                        showError('ERRO DE PERMISSÃO! Você precisa configurar as regras do Firebase. Veja o arquivo firebase_rules.json');
+                    } else {
+                        showError('Erro ao salvar tarefa: ' + dbError.message);
+                    }
+                    
+                    btn.innerHTML = '✅ Criar Tarefa';
+                    btn.disabled = false;
+                    return;
+                }
                 
                 // Limpar formulário
                 document.getElementById('taskTitle').value = '';
@@ -852,21 +1039,27 @@
                 document.getElementById('tutorialFile').value = '';
                 tutorialFile = null;
                 
-                showToast('✅ Tarefa criada com sucesso!');
-                loadTasks();
+                showSuccess('Tarefa criada com sucesso!');
+                showToast('✅ Tarefa criada!');
                 
             } catch (error) {
-                console.error('Erro ao criar tarefa:', error);
-                showToast('❌ Erro ao criar tarefa');
+                console.error('❌ Erro geral:', error);
+                showError('Erro inesperado: ' + error.message);
             } finally {
-                btn.textContent = originalText;
+                btn.innerHTML = '✅ Criar Tarefa';
                 btn.disabled = false;
             }
         }
         
-        // Carregar tarefas existentes
+        // ============================================
+        // TAREFAS
+        // ============================================
+        
         function loadTasks() {
+            if (!isFirebaseInitialized) return;
+            
             database.ref('tasks').on('value', (snapshot) => {
+                console.log('Tarefas carregadas:', snapshot.val());
                 const tasks = snapshot.val() || {};
                 const list = document.getElementById('tasksList');
                 
@@ -896,10 +1089,12 @@
                     `;
                 });
                 list.innerHTML = html;
+            }, (error) => {
+                console.error('Erro ao carregar tarefas:', error);
+                showError('Erro ao carregar tarefas: ' + error.message);
             });
         }
         
-        // Deletar tarefa
         async function deleteTask(taskId) {
             if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
             
@@ -907,12 +1102,17 @@
                 await database.ref('tasks/' + taskId).remove();
                 showToast('🗑️ Tarefa excluída');
             } catch (error) {
-                showToast('❌ Erro ao excluir');
+                showError('Erro ao excluir: ' + error.message);
             }
         }
         
-        // Carregar saques
+        // ============================================
+        // SAQUES
+        // ============================================
+        
         function loadSaques() {
+            if (!isFirebaseInitialized) return;
+            
             database.ref('saques').on('value', (snapshot) => {
                 const saques = snapshot.val() || {};
                 const list = document.getElementById('saquesList');
@@ -936,7 +1136,7 @@
                                 R$ ${saque.amount.toFixed(2)}
                             </div>
                             <div class="approval-actions">
-                                <button class="btn-approve" onclick="completeSaque('${key}', '${saque.userId}', ${saque.amount})">
+                                <button class="btn-approve" onclick="completeSaque('${key}')">
                                     ✅ Pago
                                 </button>
                                 <button class="btn-reject" onclick="rejectSaque('${key}')">
@@ -947,11 +1147,12 @@
                     `;
                 });
                 list.innerHTML = html;
+            }, (error) => {
+                showError('Erro ao carregar saques: ' + error.message);
             });
         }
         
-        // Completar saque
-        async function completeSaque(saqueId, userId, amount) {
+        async function completeSaque(saqueId) {
             try {
                 await database.ref('saques/' + saqueId).update({
                     status: 'completed',
@@ -959,17 +1160,15 @@
                 });
                 showToast('✅ Saque marcado como pago');
             } catch (error) {
-                showToast('❌ Erro ao processar');
+                showError('Erro ao processar: ' + error.message);
             }
         }
         
-        // Recusar saque
         async function rejectSaque(saqueId) {
             try {
                 const snapshot = await database.ref('saques/' + saqueId).once('value');
                 const saque = snapshot.val();
                 
-                // Devolver dinheiro ao usuário
                 const userBalance = await database.ref('users/' + saque.userId + '/balance').once('value');
                 const newBalance = (userBalance.val() || 0) + saque.amount;
                 await database.ref('users/' + saque.userId + '/balance').set(newBalance);
@@ -981,12 +1180,17 @@
                 
                 showToast('❌ Saque recusado e valor devolvido');
             } catch (error) {
-                showToast('❌ Erro ao recusar');
+                showError('Erro ao recusar: ' + error.message);
             }
         }
         
-        // Carregar usuários
+        // ============================================
+        // USUÁRIOS
+        // ============================================
+        
         function loadUsers() {
+            if (!isFirebaseInitialized) return;
+            
             database.ref('users').on('value', (snapshot) => {
                 const users = snapshot.val() || {};
                 const list = document.getElementById('usersList');
@@ -1028,10 +1232,11 @@
                 
                 html += '</tbody></table>';
                 list.innerHTML = html;
+            }, (error) => {
+                showError('Erro ao carregar usuários: ' + error.message);
             });
         }
         
-        // Editar saldo
         async function editBalance(userId, currentBalance) {
             const newBalance = prompt('Novo saldo para ' + userId + ':', currentBalance);
             if (newBalance !== null && !isNaN(newBalance)) {
@@ -1039,17 +1244,9 @@
                     await database.ref('users/' + userId + '/balance').set(parseFloat(newBalance));
                     showToast('✅ Saldo atualizado');
                 } catch (error) {
-                    showToast('❌ Erro ao atualizar');
+                    showError('Erro ao atualizar: ' + error.message);
                 }
             }
-        }
-        
-        // Toast
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
         }
     </script>
 </body>
