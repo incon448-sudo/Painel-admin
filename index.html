@@ -262,6 +262,7 @@
             border-radius: 10px;
             margin-bottom: 15px;
             cursor: pointer;
+            display: block;
         }
         
         .approval-actions {
@@ -503,6 +504,54 @@
             margin-top: 10px;
             font-size: 0.9rem;
             display: none;
+        }
+        
+        /* NOVO: Estilos para imagem base64 e erro */
+        .comprovante-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .comprovante-img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .comprovante-error {
+            padding: 20px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            color: #856404;
+            text-align: center;
+        }
+        
+        .comprovante-error button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #ffc107;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .comprovante-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -813,6 +862,90 @@
             });
         }
         
+        // ============================================
+        // NOVA FUNÇÃO: Exibir comprovante com suporte a BASE64
+        // ============================================
+        function createComprovanteHTML(imageData, approvalKey) {
+            if (!imageData) {
+                return '<p style="color: #999; text-align: center;">Sem comprovante</p>';
+            }
+            
+            // Detectar tipo de imagem
+            let imageSrc = imageData;
+            let isBase64 = false;
+            
+            if (imageData.startsWith('data:image')) {
+                // Já é base64 completo
+                isBase64 = true;
+            } else if (imageData.startsWith('http')) {
+                // É URL normal (Firebase Storage ou outro)
+                isBase64 = false;
+            } else {
+                // Pode ser base64 sem prefixo
+                isBase64 = true;
+                imageSrc = 'data:image/jpeg;base64,' + imageData;
+            }
+            
+            // Criar ID único para esta imagem
+            const imgId = 'comp-img-' + approvalKey;
+            
+            return `
+                <div class="comprovante-container" id="container-${approvalKey}">
+                    <img id="${imgId}" 
+                         src="${imageSrc}" 
+                         class="comprovante-img"
+                         onclick="openImageModal('${imageSrc}')"
+                         onerror="handleImageError('${approvalKey}', '${imageData}', ${isBase64})"
+                         alt="Comprovante">
+                    <div id="error-${approvalKey}" style="display: none;"></div>
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // NOVA FUNÇÃO: Tratar erro de carregamento da imagem
+        // ============================================
+        function handleImageError(approvalKey, imageData, isBase64) {
+            log('❌ Erro ao carregar imagem: ' + approvalKey);
+            
+            const container = document.getElementById('container-' + approvalKey);
+            const errorDiv = document.getElementById('error-' + approvalKey);
+            
+            if (container && errorDiv) {
+                // Esconder imagem quebrada
+                const img = document.getElementById('comp-img-' + approvalKey);
+                if (img) img.style.display = 'none';
+                
+                // Mostrar mensagem de erro com opções
+                errorDiv.innerHTML = `
+                    <div class="comprovante-error">
+                        <p>⚠️ Não foi possível carregar a imagem</p>
+                        <button onclick="retryImage('${approvalKey}', '${imageData}')">🔄 Tentar novamente</button>
+                        <br>
+                        <a href="${imageData}" target="_blank" class="comprovante-link">🔗 Abrir em nova aba</a>
+                    </div>
+                `;
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        // ============================================
+        // NOVA FUNÇÃO: Tentar carregar imagem novamente
+        // ============================================
+        function retryImage(approvalKey, imageData) {
+            const img = document.getElementById('comp-img-' + approvalKey);
+            const errorDiv = document.getElementById('error-' + approvalKey);
+            
+            if (img && errorDiv) {
+                // Esconder erro
+                errorDiv.style.display = 'none';
+                // Mostrar imagem
+                img.style.display = 'block';
+                // Forçar recarregamento
+                img.src = imageData + '?retry=' + Date.now();
+            }
+        }
+        
         function loadApprovals() {
             if (!isFirebaseInitialized) return;
             
@@ -835,6 +968,9 @@
         }
         
         function createApprovalCard(key, approval) {
+            // Usar nova função para exibir comprovante
+            const comprovanteHTML = createComprovanteHTML(approval.comprovanteUrl || approval.comprovanteImage, key);
+            
             return `
                 <div class="approval-card" id="approval-${key}">
                     <div class="approval-header">
@@ -849,13 +985,10 @@
                         </div>
                     </div>
                     
-                    <img src="${approval.comprovanteUrl}" 
-                         class="approval-image" 
-                         onclick="openImageModal('${approval.comprovanteUrl}')"
-                         alt="Comprovante">
+                    ${comprovanteHTML}
                     
                     <div class="approval-actions">
-                        <button class="btn-approve" onclick="approveTask('${key}', '${approval.userId}', '${approval.taskId}', '${approval.comprovanteUrl}')">
+                        <button class="btn-approve" onclick="approveTask('${key}', '${approval.userId}', '${approval.taskId}', '${approval.comprovanteUrl || approval.comprovanteImage || ''}')">
                             ✅ Aprovar
                         </button>
                         <button class="btn-reject" onclick="rejectTask('${key}', '${approval.userId}', '${approval.taskId}')">
