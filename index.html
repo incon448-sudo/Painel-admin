@@ -3,1396 +3,448 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Tarefa Pix</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <!-- REMOVIDO: Firebase Storage -->
+    <title>Painel Admin - Sistema de Cupons</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        
-        .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .login-box h2 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-        
-        .login-box input {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-        
-        .login-box button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .header {
-            background: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            color: #667eea;
-            font-size: 1.5rem;
-        }
-        
-        .header button {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card h3 {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        
-        .stat-card .value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .tabs {
-            display: flex;
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-            color: #666;
-        }
-        
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-        
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9fa;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .upload-area:hover {
-            background: #e9ecef;
-        }
-        
-        .upload-area.has-file {
-            border-color: #28a745;
-            background: #d4edda;
-        }
-        
-        .upload-preview {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-        
-        .btn-submit {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            width: 100%;
-        }
-        
-        .btn-submit:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .approval-card {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 5px solid #ffc107;
-        }
-        
-        .approval-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        
-        .approval-user {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .approval-date {
-            color: #999;
-            font-size: 0.9rem;
-        }
-        
-        .approval-image {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            display: block;
-        }
-        
-        .approval-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-approve {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .btn-reject {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .task-list {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .task-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .task-info h4 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .task-stats .reward {
-            color: #28a745;
-            font-weight: bold;
-        }
-        
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #333;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            z-index: 2000;
-            display: none;
-        }
-        
-        .toast.show {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .modal-image {
-            max-width: 100%;
-            border-radius: 10px;
-        }
-        
-        .error-box {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .success-box {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .firebase-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            z-index: 9999;
-        }
-        
-        .firebase-status.connected {
-            background: #28a745;
-            color: white;
-        }
-        
-        .firebase-status.disconnected {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .debug-console {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .pix-data-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 15px 0;
-        }
-        
-        .pix-data-box h4 {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-        
-        .pix-data-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .pix-data-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .pix-data-label {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-        
-        .pix-data-value {
-            font-weight: bold;
-            text-align: right;
-        }
-        
-        .pix-key-display {
-            background: rgba(255,255,255,0.2);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 5px;
-            font-family: monospace;
-            word-break: break-all;
-        }
-        
-        .upload-status {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
-            color: #1565c0;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        
-        /* NOVO: Estilos para imagem base64 e erro */
-        .comprovante-container {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .comprovante-img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        .comprovante-error {
-            padding: 20px;
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 10px;
-            color: #856404;
-            text-align: center;
-        }
-        
-        .comprovante-error button {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #ffc107;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .comprovante-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.9rem;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; color: white; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card h2 { color: #333; margin-bottom: 20px; font-size: 1.5em; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+        .form-group input:focus { border-color: #667eea; outline: none; }
+        
+        .btn { padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white; }
+        .btn-copy { background: #667eea; color: white; padding: 8px 15px; font-size: 14px; }
+        
+        .cupom-list { display: grid; gap: 15px; }
+        .cupom-item { background: #f8f9fa; border-radius: 10px; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #667eea; }
+        .cupom-code { font-family: 'Courier New', monospace; font-size: 1.3em; font-weight: bold; color: #667eea; background: white; padding: 5px 15px; border-radius: 5px; border: 2px dashed #667eea; }
+        .cupom-info { flex: 1; margin-left: 20px; }
+        .cupom-info p { margin: 3px 0; color: #666; }
+        .cupom-status { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-ativo { background: #d4edda; color: #155724; }
+        .status-usado { background: #f8d7da; color: #721c24; }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .stat-number { font-size: 2.5em; font-weight: bold; color: #667eea; }
+        .stat-label { color: #666; margin-top: 5px; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 25px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s; }
+        .tab.active { background: white; color: #667eea; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .hidden { display: none; }
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        .usuarios-list { max-height: 400px; overflow-y: auto; }
+        .usuario-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .btn-acao { padding: 5px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .btn-editar { background: #ffc107; color: #000; }
+        .btn-excluir { background: #dc3545; color: white; }
+        
+        @media (max-width: 768px) {
+            .cupom-item { flex-direction: column; text-align: center; }
+            .cupom-info { margin: 10px 0; }
         }
     </style>
 </head>
 <body>
-    <div class="firebase-status disconnected" id="firebaseStatus">🔴 Firebase Desconectado</div>
-    
-    <div class="login-screen" id="loginScreen">
-        <div class="login-box">
-            <h2>🔐 Painel Administrativo</h2>
-            <input type="text" id="adminUser" placeholder="Usuário">
-            <input type="password" id="adminPass" placeholder="Senha">
-            <button onclick="login()">Entrar</button>
-            <div id="loginError" style="color: #dc3545; margin-top: 10px; display: none;"></div>
-        </div>
-    </div>
-    
-    <div id="mainPanel" class="hidden">
+    <div class="container">
         <div class="header">
-            <h1>⚙️ Painel Admin - Tarefa Pix</h1>
-            <button onclick="logout()">Sair</button>
+            <h1>🎫 Painel Administrativo</h1>
+            <p>Gerencie cupons, usuários e saques</p>
         </div>
-        
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total de Usuários</h3>
-                    <div class="value" id="totalUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Tarefas Pendentes</h3>
-                    <div class="value" id="pendingTasks">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Saques Pendentes</h3>
-                    <div class="value" id="pendingSaques">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total em Circulação</h3>
-                    <div class="value" id="totalBalance">R$ 0</div>
-                </div>
+
+        <!-- Login -->
+        <div id="loginSection" class="card">
+            <h2>🔐 Login Admin</h2>
+            <div class="form-group">
+                <label>Usuário</label>
+                <input type="text" id="adminUser" value="admin">
             </div>
-            
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="adminPass" value="admin123">
+            </div>
+            <button class="btn btn-primary" onclick="login()">Entrar</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardSection" class="hidden">
             <div class="tabs">
-                <div class="tab active" onclick="switchTab('approvals')">✅ Aprovações</div>
-                <div class="tab" onclick="switchTab('tasks')">📝 Tarefas</div>
-                <div class="tab" onclick="switchTab('saques')">💸 Saques</div>
-                <div class="tab" onclick="switchTab('users')">👥 Usuários</div>
+                <button class="tab active" onclick="showTab('cupons')">🎫 Cupons</button>
+                <button class="tab" onclick="showTab('usuarios')">👥 Usuários</button>
+                <button class="tab" onclick="showTab('saques')">💰 Saques</button>
+                <button class="tab" onclick="showTab('tarefas')">📋 Tarefas</button>
             </div>
-            
-            <div id="section-approvals" class="section">
-                <h2>⏳ Aprovações Pendentes</h2>
-                <div id="approvalsList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
+
+            <!-- Aba Cupons -->
+            <div id="tabCupons" class="tab-content active">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCupons">0</div>
+                        <div class="stat-label">Total de Cupons</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="cuponsAtivos">0</div>
+                        <div class="stat-label">Cupons Ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="cuponsUsados">0</div>
+                        <div class="stat-label">Cupons Usados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="valorDistribuido">R$ 0</div>
+                        <div class="stat-label">Valor Distribuído</div>
+                    </div>
                 </div>
-            </div>
-            
-            <div id="section-tasks" class="section hidden">
-                <h2>📝 Criar Nova Tarefa</h2>
-                
-                <div class="form-group">
-                    <label>Título da Tarefa *</label>
-                    <input type="text" id="taskTitle" placeholder="Ex: Recarregar R$5 e ganhe R$6">
-                </div>
-                
-                <div class="form-group">
-                    <label>Descrição *</label>
-                    <textarea id="taskDesc" rows="3" placeholder="Descreva o que o usuário precisa fazer..."></textarea>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+                <div class="card">
+                    <h2>🎫 Gerar Novo Cupom</h2>
+                    <div id="alertCupom"></div>
                     <div class="form-group">
-                        <label>Valor a Investir (R$) *</label>
-                        <input type="number" id="taskInvest" step="0.01" placeholder="5.00">
+                        <label>Código do Cupom (ex: META300, SORTEIO20)</label>
+                        <input type="text" id="codigoCupom" placeholder="Digite o código..." style="text-transform: uppercase;">
                     </div>
                     <div class="form-group">
-                        <label>Recompensa (R$) *</label>
-                        <input type="number" id="taskReward" step="0.01" placeholder="6.00">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="valorCupom" value="1.50" step="0.01" min="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição/Observação</label>
+                        <input type="text" id="descricaoCupom" placeholder="Ex: Sorteio para 300 membros do grupo">
+                    </div>
+                    <button class="btn btn-success" onclick="gerarCupom()">🎫 Gerar Cupom</button>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Cupons Gerados</h2>
+                    <div id="listaCupons" class="cupom-list">
+                        <p style="text-align: center; color: #999;">Nenhum cupom gerado ainda</p>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Link da Plataforma *</label>
-                    <input type="text" id="taskLink" placeholder="https://...">
-                </div>
-                
-                <div class="form-group">
-                    <label>📸 Imagem do Tutorial (Opcional)</label>
-                    <div class="upload-area" id="tutorialUploadArea" onclick="document.getElementById('tutorialFile').click()">
-                        <div id="tutorialUploadText">
-                            📷 Clique para adicionar foto do tutorial<br>
-                            <small>Mostre passo a passo de como fazer</small>
-                        </div>
-                        <img id="tutorialPreview" class="upload-preview" style="display:none;">
-                    </div>
-                    <input type="file" id="tutorialFile" accept="image/*" style="display:none;" onchange="handleTutorialFile(event)">
-                    <div id="uploadStatus" class="upload-status"></div>
-                </div>
-                
-                <button class="btn-submit" id="btnCreateTask" onclick="createTask()">✅ Criar Tarefa</button>
-                
-                <div id="errorBox" class="error-box"></div>
-                <div id="successBox" class="success-box"></div>
-                
-                <div id="debugConsole" class="debug-console">
-                    <strong>Console de Debug:</strong><br>
-                    Aguardando ação...
-                </div>
-                
-                <hr style="margin: 40px 0; border: none; border-top: 2px solid #e0e0e0;">
-                
-                <h2>📋 Tarefas Existentes</h2>
-                <div class="task-list" id="tasksList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
+            </div>
+
+            <!-- Aba Usuários -->
+            <div id="tabUsuarios" class="tab-content">
+                <div class="card">
+                    <h2>👥 Gerenciar Usuários</h2>
+                    <div id="listaUsuarios" class="usuarios-list"></div>
                 </div>
             </div>
-            
-            <div id="section-saques" class="section hidden">
-                <h2>💸 Saques Pendentes</h2>
-                <div id="saquesList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
+
+            <!-- Aba Saques -->
+            <div id="tabSaques" class="tab-content">
+                <div class="card">
+                    <h2>💰 Solicitações de Saque</h2>
+                    <div id="listaSaques"></div>
                 </div>
             </div>
-            
-            <div id="section-users" class="section hidden">
-                <h2>👥 Gerenciar Usuários</h2>
-                <div id="usersList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
+
+            <!-- Aba Tarefas -->
+            <div id="tabTarefas" class="tab-content">
+                <div class="card">
+                    <h2>📋 Gerenciar Tarefas</h2>
+                    <div id="listaTarefasAdmin"></div>
                 </div>
             </div>
+
+            <button class="btn btn-danger" onclick="logout()" style="margin-top: 20px;">Sair</button>
         </div>
     </div>
-    
-    <div class="modal" id="imageModal" onclick="closeImageModal()">
-        <div class="modal-content">
-            <img id="modalImage" class="modal-image" src="" alt="Comprovante">
-        </div>
-    </div>
-    
-    <div class="toast" id="toast"></div>
 
     <script>
-        // ============================================
-        // CONFIGURAÇÃO FIREBASE - APENAS REALTIME DATABASE
-        // ============================================
+        // Configuração Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyCVR7V_5zwbCZbyl0P0Xw9-XXXXXXXXXXXX",
+            apiKey: "AIzaSyA1r_PfVzXqDLxI52znZpopBjvlz2W2WzQ",
             authDomain: "tarefa-pix.firebaseapp.com",
             databaseURL: "https://tarefa-pix-default-rtdb.firebaseio.com",
             projectId: "tarefa-pix",
-            storageBucket: "tarefa-pix.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
+            storageBucket: "tarefa-pix.firebasestorage.app",
+            messagingSenderId: "16378804197",
+            appId: "1:16378804197:web:0e95c0fd5440ec4e7e2106"
         };
-        
-        let database;
-        // REMOVIDO: let storage;
-        let currentTab = 'approvals';
-        let tutorialFile = null;
-        let isFirebaseInitialized = false;
-        
-        function log(message) {
-            console.log(message);
-            const debugDiv = document.getElementById('debugConsole');
-            if (debugDiv) {
-                debugDiv.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
-                debugDiv.scrollTop = debugDiv.scrollHeight;
-            }
+
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
-        
-        function showUploadStatus(message) {
-            const statusDiv = document.getElementById('uploadStatus');
-            if (statusDiv) {
-                statusDiv.textContent = message;
-                statusDiv.style.display = 'block';
-            }
-        }
-        
-        function initFirebase() {
-            try {
-                log('🔄 Inicializando Firebase...');
-                
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                
-                database = firebase.database();
-                // REMOVIDO: storage = firebase.storage();
-                isFirebaseInitialized = true;
-                
-                database.ref('.info/connected').on('value', (snap) => {
-                    const connected = snap.val();
-                    const statusEl = document.getElementById('firebaseStatus');
-                    if (connected) {
-                        statusEl.textContent = '🟢 Firebase Conectado';
-                        statusEl.classList.remove('disconnected');
-                        statusEl.classList.add('connected');
-                        log('✅ Firebase conectado!');
-                    } else {
-                        statusEl.textContent = '🔴 Firebase Desconectado';
-                        statusEl.classList.remove('connected');
-                        statusEl.classList.add('disconnected');
-                    }
-                });
-                
-                return true;
-            } catch (error) {
-                log('❌ Erro Firebase: ' + error.message);
-                return false;
-            }
-        }
-        
-        window.onload = function() {
-            log('🚀 Página carregada');
-            
-            if (!initFirebase()) {
-                document.getElementById('loginError').textContent = 'Erro ao conectar com Firebase.';
-                document.getElementById('loginError').style.display = 'block';
-                return;
-            }
-            
-            const isLogged = localStorage.getItem('adminLogged');
-            if (isLogged === 'true') {
-                showMainPanel();
-            }
-        };
-        
+        const db = firebase.database();
+
+        let currentAdmin = null;
+
         function login() {
             const user = document.getElementById('adminUser').value;
             const pass = document.getElementById('adminPass').value;
             
             if (user === 'admin' && pass === 'admin123') {
-                localStorage.setItem('adminLogged', 'true');
-                showMainPanel();
+                currentAdmin = user;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                carregarDados();
             } else {
-                document.getElementById('loginError').textContent = 'Usuário ou senha incorretos!';
-                document.getElementById('loginError').style.display = 'block';
+                alert('Credenciais inválidas!');
             }
         }
-        
+
         function logout() {
-            localStorage.removeItem('adminLogged');
-            location.reload();
+            currentAdmin = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
         }
-        
-        function showMainPanel() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainPanel').classList.remove('hidden');
-            
-            loadStats();
-            loadApprovals();
-            loadTasks();
-            loadSaques();
-            loadUsers();
-        }
-        
-        function switchTab(tab) {
-            currentTab = tab;
+
+        function showTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
-            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('section-' + tab).classList.remove('hidden');
-        }
-        
-        function showError(message) {
-            log('❌ ERRO: ' + message);
-            const errorBox = document.getElementById('errorBox');
-            errorBox.textContent = '❌ ' + message;
-            errorBox.style.display = 'block';
-            document.getElementById('successBox').style.display = 'none';
-        }
-        
-        function showSuccess(message) {
-            log('✅ SUCESSO: ' + message);
-            const successBox = document.getElementById('successBox');
-            successBox.textContent = '✅ ' + message;
-            successBox.style.display = 'block';
-            document.getElementById('errorBox').style.display = 'none';
-        }
-        
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-        
-        function loadStats() {
-            if (!isFirebaseInitialized) return;
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
             
-            database.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val() || {};
-                document.getElementById('totalUsers').textContent = Object.keys(users).length;
-                
-                let total = 0;
-                Object.values(users).forEach(u => total += u.balance || 0);
-                document.getElementById('totalBalance').textContent = 'R$ ' + total.toFixed(2);
-            });
-            
-            database.ref('pendingApprovals').on('value', (snapshot) => {
-                const approvals = snapshot.val() || {};
-                document.getElementById('pendingTasks').textContent = Object.keys(approvals).length;
-            });
-            
-            database.ref('saques').on('value', (snapshot) => {
-                const saques = snapshot.val() || {};
-                const pending = Object.values(saques).filter(s => s.status === 'pending').length;
-                document.getElementById('pendingSaques').textContent = pending;
-            });
+            if (tab === 'cupons') carregarCupons();
+            if (tab === 'usuarios') carregarUsuarios();
+            if (tab === 'saques') carregarSaques();
+            if (tab === 'tarefas') carregarTarefas();
         }
-        
-        // ============================================
-        // FUNÇÃO: Exibir comprovante com suporte a BASE64
-        // ============================================
-        function createComprovanteHTML(imageData, approvalKey) {
-            if (!imageData) {
-                return '<p style="color: #999; text-align: center;">Sem comprovante</p>';
+
+        function showAlert(id, message, type) {
+            const alert = document.getElementById(id);
+            alert.className = 'alert alert-' + type;
+            alert.textContent = message;
+            setTimeout(() => alert.textContent = '', 3000);
+        }
+
+        // ===== SISTEMA DE CUPONS =====
+        function gerarCupom() {
+            const codigo = document.getElementById('codigoCupom').value.toUpperCase().trim();
+            const valor = parseFloat(document.getElementById('valorCupom').value);
+            const descricao = document.getElementById('descricaoCupom').value.trim();
+
+            if (!codigo) {
+                showAlert('alertCupom', 'Digite um código para o cupom!', 'error');
+                return;
             }
-            
-            // Detectar tipo de imagem
-            let imageSrc = imageData;
-            
-            if (imageData.startsWith('data:image')) {
-                // Já é base64 completo - usar direto
-                imageSrc = imageData;
-            } else if (imageData.startsWith('http')) {
-                // É URL (Firebase Storage antigo ou externo)
-                imageSrc = imageData;
-            } else {
-                // É base64 sem prefixo - adicionar
-                imageSrc = 'data:image/jpeg;base64,' + imageData;
+
+            if (!valor || valor <= 0) {
+                showAlert('alertCupom', 'Valor inválido!', 'error');
+                return;
             }
-            
-            // Criar ID único para esta imagem
-            const imgId = 'comp-img-' + approvalKey;
-            
-            return `
-                <div class="comprovante-container" id="container-${approvalKey}">
-                    <img id="${imgId}" 
-                         src="${imageSrc}" 
-                         class="comprovante-img"
-                         onclick="openImageModal('${imageSrc}')"
-                         onerror="handleImageError('${approvalKey}', '${imageData}')"
-                         alt="Comprovante">
-                    <div id="error-${approvalKey}" style="display: none;"></div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // FUNÇÃO: Tratar erro de carregamento da imagem
-        // ============================================
-        function handleImageError(approvalKey, imageData) {
-            log('❌ Erro ao carregar imagem: ' + approvalKey);
-            
-            const container = document.getElementById('container-' + approvalKey);
-            const errorDiv = document.getElementById('error-' + approvalKey);
-            
-            if (container && errorDiv) {
-                // Esconder imagem quebrada
-                const img = document.getElementById('comp-img-' + approvalKey);
-                if (img) img.style.display = 'none';
-                
-                // Mostrar mensagem de erro com opções
-                errorDiv.innerHTML = `
-                    <div class="comprovante-error">
-                        <p>⚠️ Não foi possível carregar a imagem</p>
-                        <button onclick="retryImage('${approvalKey}', '${imageData}')">🔄 Tentar novamente</button>
-                        <br>
-                        <a href="${imageData}" target="_blank" class="comprovante-link">🔗 Abrir em nova aba</a>
-                    </div>
-                `;
-                errorDiv.style.display = 'block';
-            }
-        }
-        
-        // ============================================
-        // FUNÇÃO: Tentar carregar imagem novamente
-        // ============================================
-        function retryImage(approvalKey, imageData) {
-            const img = document.getElementById('comp-img-' + approvalKey);
-            const errorDiv = document.getElementById('error-' + approvalKey);
-            
-            if (img && errorDiv) {
-                // Esconder erro
-                errorDiv.style.display = 'none';
-                // Mostrar imagem
-                img.style.display = 'block';
-                // Forçar recarregamento
-                img.src = imageData + '?retry=' + Date.now();
-            }
-        }
-        
-        function loadApprovals() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('pendingApprovals').on('value', (snapshot) => {
-                const approvals = snapshot.val() || {};
-                const list = document.getElementById('approvalsList');
-                
-                if (Object.keys(approvals).length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhuma aprovação pendente 🎉</p>';
-                    return;
-                }
-                
-                let html = '';
-                Object.keys(approvals).forEach(key => {
-                    const approval = approvals[key];
-                    html += createApprovalCard(key, approval);
-                });
-                list.innerHTML = html;
-            });
-        }
-        
-        function createApprovalCard(key, approval) {
-            // Usar nova função para exibir comprovante (suporta base64 e URL)
-            const comprovanteHTML = createComprovanteHTML(approval.comprovanteImage || approval.comprovanteUrl, key);
-            
-            return `
-                <div class="approval-card" id="approval-${key}">
-                    <div class="approval-header">
-                        <div>
-                            <div class="approval-user">👤 ${approval.userId}</div>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                Tarefa: ${approval.taskId}
-                            </div>
-                        </div>
-                        <div class="approval-date">
-                            ${new Date(approval.submittedAt).toLocaleString()}
-                        </div>
-                    </div>
-                    
-                    ${comprovanteHTML}
-                    
-                    <div class="approval-actions">
-                        <button class="btn-approve" onclick="approveTask('${key}', '${approval.userId}', '${approval.taskId}', '${approval.comprovanteImage || approval.comprovanteUrl || ''}')">
-                            ✅ Aprovar
-                        </button>
-                        <button class="btn-reject" onclick="rejectTask('${key}', '${approval.userId}', '${approval.taskId}')">
-                            ❌ Rejeitar
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        async function approveTask(approvalKey, userId, taskId, comprovanteImage) {
-            try {
-                const taskSnapshot = await database.ref('tasks/' + taskId).once('value');
-                const task = taskSnapshot.val();
-                
-                if (!task) {
-                    showError('Tarefa não encontrada');
-                    return;
-                }
-                
-                await database.ref('userTasks/' + userId + '/' + taskId).update({
-                    status: 'approved',
-                    approvedAt: Date.now()
-                });
-                
-                const userSnapshot = await database.ref('users/' + userId + '/balance').once('value');
-                const currentBalance = userSnapshot.val() || 0;
-                await database.ref('users/' + userId + '/balance').set(currentBalance + task.reward);
-                
-                await database.ref('pendingApprovals/' + approvalKey).remove();
-                
-                await database.ref('approvedTasks/' + approvalKey).set({
-                    userId: userId,
-                    taskId: taskId,
-                    reward: task.reward,
-                    approvedAt: Date.now(),
-                    comprovanteImage: comprovanteImage
-                });
-                
-                showToast('✅ Tarefa aprovada!');
-                
-            } catch (error) {
-                showError('Erro ao aprovar: ' + error.message);
-            }
-        }
-        
-        async function rejectTask(approvalKey, userId, taskId) {
-            try {
-                await database.ref('userTasks/' + userId + '/' + taskId).update({
-                    status: 'rejected',
-                    rejectedAt: Date.now()
-                });
-                
-                await database.ref('pendingApprovals/' + approvalKey).remove();
-                showToast('❌ Tarefa rejeitada');
-                
-            } catch (error) {
-                showError('Erro ao rejeitar: ' + error.message);
-            }
-        }
-        
-        function openImageModal(url) {
-            document.getElementById('modalImage').src = url;
-            document.getElementById('imageModal').classList.add('active');
-        }
-        
-        function closeImageModal() {
-            document.getElementById('imageModal').classList.remove('active');
-        }
-        
-        function handleTutorialFile(event) {
-            log('📸 Arquivo selecionado');
-            const file = event.target.files[0];
-            if (file) {
-                // Verificar tamanho (máximo 500KB)
-                if (file.size > 500 * 1024) {
-                    showError('Imagem muito grande! Máximo 500KB');
-                    return;
-                }
-                
-                tutorialFile = file;
-                log('Arquivo: ' + file.name + ' (' + (file.size/1024).toFixed(2) + ' KB)');
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('tutorialPreview').src = e.target.result;
-                    document.getElementById('tutorialPreview').style.display = 'block';
-                    document.getElementById('tutorialUploadText').style.display = 'none';
-                    document.getElementById('tutorialUploadArea').classList.add('has-file');
-                    showUploadStatus('📷 Imagem pronta (base64)');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        // ============================================
-        // CREATE TASK - COM BASE64 NO DATABASE (SEM STORAGE)
-        // ============================================
-        async function createTask() {
-            log('📝 INICIANDO CRIAÇÃO DE TAREFA...');
-            
-            try {
-                if (!isFirebaseInitialized || !database) {
-                    throw new Error('Firebase não inicializado');
-                }
-                
-                const title = document.getElementById('taskTitle').value.trim();
-                const desc = document.getElementById('taskDesc').value.trim();
-                const invest = parseFloat(document.getElementById('taskInvest').value);
-                const reward = parseFloat(document.getElementById('taskReward').value);
-                const link = document.getElementById('taskLink').value.trim();
-                
-                log('Dados: ' + JSON.stringify({title, desc, invest, reward}));
-                
-                if (!title) throw new Error('Digite o título');
-                if (!desc) throw new Error('Digite a descrição');
-                if (!invest || invest <= 0) throw new Error('Investimento inválido');
-                if (!reward || reward <= 0) throw new Error('Recompensa inválida');
-                if (!link) throw new Error('Digite o link');
-                
-                const btn = document.getElementById('btnCreateTask');
-                btn.innerHTML = '<span class="loading"></span> Criando...';
-                btn.disabled = true;
-                
-                let tutorialImageBase64 = null;
-                
-                // CONVERTER IMAGEM PARA BASE64 (SEM STORAGE)
-                if (tutorialFile) {
-                    log('📸 Convertendo imagem para base64...');
-                    showUploadStatus('🔄 Processando imagem...');
-                    
-                    try {
-                        tutorialImageBase64 = await fileToBase64(tutorialFile);
-                        log('✅ Imagem convertida! Tamanho: ' + (tutorialImageBase64.length/1024).toFixed(2) + ' KB');
-                        showUploadStatus('✅ Imagem pronta!');
-                    } catch (imgError) {
-                        log('❌ Erro na imagem: ' + imgError.message);
-                        showUploadStatus('⚠️ Erro na imagem, continuando sem...');
-                        tutorialImageBase64 = null;
-                    }
-                }
-                
-                // Criar tarefa
-                const taskId = 'TASK_' + Date.now();
-                const taskData = {
-                    id: taskId,
-                    title: title,
-                    description: desc,
-                    invest: invest,
-                    reward: reward,
-                    link: link,
-                    tutorialImage: tutorialImageBase64,  // BASE64!
-                    createdAt: Date.now(),
-                    createdBy: 'admin'
-                };
-                
-                log('💾 Salvando tarefa no Realtime Database...');
-                await database.ref('tasks/' + taskId).set(taskData);
-                
-                log('✅ TAREFA CRIADA COM SUCESSO!');
-                
-                // Limpar formulário
-                document.getElementById('taskTitle').value = '';
-                document.getElementById('taskDesc').value = '';
-                document.getElementById('taskInvest').value = '';
-                document.getElementById('taskReward').value = '';
-                document.getElementById('taskLink').value = '';
-                document.getElementById('tutorialPreview').style.display = 'none';
-                document.getElementById('tutorialUploadText').style.display = 'block';
-                document.getElementById('tutorialUploadArea').classList.remove('has-file');
-                document.getElementById('tutorialFile').value = '';
-                document.getElementById('uploadStatus').style.display = 'none';
-                tutorialFile = null;
-                
-                showSuccess('Tarefa criada com sucesso!' + (tutorialImageBase64 ? ' (com imagem base64)' : ' (sem imagem)'));
-                showToast('✅ Tarefa criada!');
-                
-            } catch (error) {
-                log('❌ ERRO: ' + error.message);
-                showError(error.message);
-            } finally {
-                const btn = document.getElementById('btnCreateTask');
-                btn.innerHTML = '✅ Criar Tarefa';
-                btn.disabled = false;
-            }
-        }
-        
-        // Função para converter arquivo em base64
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-        
-        function loadTasks() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('tasks').on('value', (snapshot) => {
-                const tasks = snapshot.val() || {};
-                const list = document.getElementById('tasksList');
-                
-                if (Object.keys(tasks).length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999;">Nenhuma tarefa criada</p>';
-                    return;
-                }
-                
-                let html = '';
-                Object.keys(tasks).forEach(taskId => {
-                    const task = tasks[taskId];
-                    html += `
-                        <div class="task-item">
-                            <div class="task-info">
-                                <h4>${task.title}</h4>
-                                <p>${task.description}</p>
-                                ${task.tutorialImage ? '<span style="color: #17a2b8;">📸 Com tutorial (base64)</span>' : ''}
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <div class="task-stats" style="margin-right: 15px;">
-                                    <div class="reward">+R$ ${task.reward.toFixed(2)}</div>
-                                    <div style="color: #666; font-size: 0.9rem;">Invest: R$ ${task.invest.toFixed(2)}</div>
-                                </div>
-                                <button class="btn-delete" onclick="deleteTask('${taskId}')">🗑️</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                list.innerHTML = html;
-            });
-        }
-        
-        async function deleteTask(taskId) {
-            if (!confirm('Tem certeza?')) return;
-            
-            try {
-                await database.ref('tasks/' + taskId).remove();
-                showToast('🗑️ Tarefa excluída');
-            } catch (error) {
-                showError('Erro ao excluir: ' + error.message);
-            }
-        }
-        
-        function loadSaques() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('saques').on('value', (snapshot) => {
-                const saques = snapshot.val() || {};
-                const list = document.getElementById('saquesList');
-                
-                const pendingSaques = Object.entries(saques).filter(([key, s]) => s.status === 'pending');
-                
-                if (pendingSaques.length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum saque pendente</p>';
-                    return;
-                }
-                
-                let html = '';
-                pendingSaques.forEach(([key, saque]) => {
-                    html += createSaqueCard(key, saque);
-                });
-                list.innerHTML = html;
-            });
-        }
-        
-        function createSaqueCard(key, saque) {
-            const tipoLabels = {
-                'cpf': 'CPF', 'cnpj': 'CNPJ', 'email': 'E-mail',
-                'telefone': 'Telefone', 'aleatoria': 'Chave Aleatória'
+
+            const cupom = {
+                codigo: codigo,
+                valor: valor,
+                descricao: descricao,
+                status: 'ativo',
+                usadoPor: null,
+                dataCriacao: Date.now(),
+                dataUso: null
             };
-            
-            const pixData = saque.pixData || {};
-            
-            return `
-                <div class="approval-card" style="border-left-color: #667eea;">
-                    <div class="approval-header">
-                        <div>
-                            <div class="approval-user">👤 ${saque.userId}</div>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                ${new Date(saque.requestedAt).toLocaleString()}
+
+            db.ref('cupons/' + codigo).set(cupom)
+                .then(() => {
+                    showAlert('alertCupom', 'Cupom "' + codigo + '" gerado com sucesso!', 'success');
+                    document.getElementById('codigoCupom').value = '';
+                    document.getElementById('descricaoCupom').value = '';
+                    carregarCupons();
+                })
+                .catch(error => {
+                    showAlert('alertCupom', 'Erro ao gerar cupom: ' + error.message, 'error');
+                });
+        }
+
+        function carregarCupons() {
+            db.ref('cupons').once('value', snapshot => {
+                const cupons = snapshot.val() || {};
+                const lista = document.getElementById('listaCupons');
+                
+                let total = 0, ativos = 0, usados = 0, valorTotal = 0;
+                let html = '';
+
+                Object.values(cupons).forEach(cupom => {
+                    total++;
+                    if (cupom.status === 'ativo') ativos++;
+                    if (cupom.status === 'usado') {
+                        usados++;
+                        valorTotal += cupom.valor;
+                    }
+
+                    html += `
+                        <div class="cupom-item">
+                            <div class="cupom-code">${cupom.codigo}</div>
+                            <div class="cupom-info">
+                                <p><strong>Valor:</strong> R$ ${cupom.valor.toFixed(2)}</p>
+                                <p><strong>Descrição:</strong> ${cupom.descricao || 'Sem descrição'}</p>
+                                <p><strong>Criado:</strong> ${new Date(cupom.dataCriacao).toLocaleString()}</p>
+                                ${cupom.usadoPor ? `<p><strong>Usado por:</strong> ${cupom.usadoPor}</p>` : ''}
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <span class="cupom-status ${cupom.status === 'ativo' ? 'status-ativo' : 'status-usado'}">
+                                    ${cupom.status === 'ativo' ? '🟢 ATIVO' : '🔴 USADO'}
+                                </span>
+                                ${cupom.status === 'ativo' ? `
+                                    <button class="btn btn-copy" onclick="copiarCupom('${cupom.codigo}')">Copiar</button>
+                                    <button class="btn btn-danger" onclick="excluirCupom('${cupom.codigo}')">Excluir</button>
+                                ` : ''}
                             </div>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
-                            R$ ${saque.amount.toFixed(2)}
-                        </div>
-                    </div>
-                    
-                    <div class="pix-data-box">
-                        <h4>🏦 Dados do Pix</h4>
-                        <div class="pix-data-item">
-                            <span class="pix-data-label">Tipo:</span>
-                            <span class="pix-data-value">${tipoLabels[pixData.tipoChave] || pixData.tipoChave}</span>
-                        </div>
-                        <div class="pix-data-item">
-                            <span class="pix-data-label">Chave:</span>
-                        </div>
-                        <div class="pix-key-display">${pixData.chave || 'N/A'}</div>
-                        <div class="pix-data-item" style="margin-top: 10px;">
-                            <span class="pix-data-label">Titular:</span>
-                            <span class="pix-data-value">${pixData.nomeTitular || 'N/A'}</span>
-                        </div>
-                        <div class="pix-data-item">
-                            <span class="pix-data-label">Banco:</span>
-                            <span class="pix-data-value">${pixData.banco || 'N/A'}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="approval-actions">
-                        <button class="btn-approve" onclick="completeSaque('${key}')">✅ Pago</button>
-                        <button class="btn-reject" onclick="rejectSaque('${key}')">❌ Recusar</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        async function completeSaque(saqueId) {
-            try {
-                await database.ref('saques/' + saqueId).update({
-                    status: 'completed',
-                    completedAt: Date.now()
+                    `;
                 });
-                showToast('✅ Saque pago');
-            } catch (error) {
-                showError('Erro: ' + error.message);
+
+                document.getElementById('totalCupons').textContent = total;
+                document.getElementById('cuponsAtivos').textContent = ativos;
+                document.getElementById('cuponsUsados').textContent = usados;
+                document.getElementById('valorDistribuido').textContent = 'R$ ' + valorTotal.toFixed(2);
+
+                lista.innerHTML = html || '<p style="text-align: center; color: #999;">Nenhum cupom gerado ainda</p>';
+            });
+        }
+
+        function copiarCupom(codigo) {
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert('Cupom "' + codigo + '" copiado! Cole no grupo do WhatsApp/Telegram.');
+            });
+        }
+
+        function excluirCupom(codigo) {
+            if (confirm('Tem certeza que deseja excluir o cupom "' + codigo + '"?')) {
+                db.ref('cupons/' + codigo).remove()
+                    .then(() => {
+                        carregarCupons();
+                    });
             }
         }
-        
-        async function rejectSaque(saqueId) {
-            try {
-                const snapshot = await database.ref('saques/' + saqueId).once('value');
-                const saque = snapshot.val();
+
+        // ===== USUÁRIOS =====
+        function carregarUsuarios() {
+            db.ref('usuarios').once('value', snapshot => {
+                const usuarios = snapshot.val() || {};
+                let html = '';
                 
-                const userBalance = await database.ref('users/' + saque.userId + '/balance').once('value');
-                const newBalance = (userBalance.val() || 0) + saque.amount;
-                await database.ref('users/' + saque.userId + '/balance').set(newBalance);
-                
-                await database.ref('saques/' + saqueId).update({
-                    status: 'rejected',
-                    rejectedAt: Date.now()
-                });
-                
-                showToast('❌ Saque recusado');
-            } catch (error) {
-                showError('Erro: ' + error.message);
-            }
-        }
-        
-        function loadUsers() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val() || {};
-                const list = document.getElementById('usersList');
-                
-                if (Object.keys(users).length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999;">Nenhum usuário</p>';
-                    return;
-                }
-                
-                let html = `
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background: #f8f9fa;">
-                                <th style="padding: 12px; text-align: left;">ID</th>
-                                <th style="padding: 12px; text-align: center;">Saldo</th>
-                                <th style="padding: 12px; text-align: center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                Object.keys(users).forEach(userId => {
-                    const user = users[userId];
+                Object.entries(usuarios).forEach(([id, user]) => {
                     html += `
-                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                            <td style="padding: 12px;">${userId}</td>
-                            <td style="padding: 12px; text-align: center; font-weight: bold; color: #28a745;">
-                                R$ ${(user.balance || 0).toFixed(2)}
-                            </td>
-                            <td style="padding: 12px; text-align: center;">
-                                <button onclick="editBalance('${userId}', ${user.balance || 0})" 
-                                        style="background: #667eea; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">
-                                    ✏️ Editar
-                                </button>
-                            </td>
-                        </tr>
+                        <div class="usuario-item">
+                            <div>
+                                <strong>${user.nome || id}</strong><br>
+                                <small>ID: ${id} | Saldo: R$ ${(user.saldo || 0).toFixed(2)}</small>
+                            </div>
+                            <div>
+                                <button class="btn-acao btn-editar" onclick="editarSaldo('${id}', ${user.saldo || 0})">Editar Saldo</button>
+                                <button class="btn-acao btn-excluir" onclick="excluirUsuario('${id}')">Excluir</button>
+                            </div>
+                        </div>
                     `;
                 });
                 
-                html += '</tbody></table>';
-                list.innerHTML = html;
+                document.getElementById('listaUsuarios').innerHTML = html || '<p style="text-align: center;">Nenhum usuário cadastrado</p>';
             });
         }
-        
-        async function editBalance(userId, currentBalance) {
-            const newBalance = prompt('Novo saldo:', currentBalance);
-            if (newBalance !== null && !isNaN(newBalance)) {
-                try {
-                    await database.ref('users/' + userId + '/balance').set(parseFloat(newBalance));
-                    showToast('✅ Saldo atualizado');
-                } catch (error) {
-                    showError('Erro: ' + error.message);
-                }
+
+        function editarSaldo(userId, saldoAtual) {
+            const novoSaldo = prompt('Novo saldo para ' + userId + ':', saldoAtual);
+            if (novoSaldo !== null) {
+                db.ref('usuarios/' + userId + '/saldo').set(parseFloat(novoSaldo))
+                    .then(() => carregarUsuarios());
             }
         }
+
+        function excluirUsuario(userId) {
+            if (confirm('Excluir usuário ' + userId + '?')) {
+                db.ref('usuarios/' + userId).remove()
+                    .then(() => carregarUsuarios());
+            }
+        }
+
+        // ===== SAQUES =====
+        function carregarSaques() {
+            db.ref('saques').once('value', snapshot => {
+                const saques = snapshot.val() || {};
+                let html = '';
+                
+                Object.entries(saques).forEach(([id, saque]) => {
+                    html += `
+                        <div class="usuario-item">
+                            <div>
+                                <strong>${saque.usuario}</strong><br>
+                                <small>R$ ${saque.valor.toFixed(2)} - ${saque.status}</small><br>
+                                <small>Chave Pix: ${saque.chavePix || 'Não informada'}</small>
+                            </div>
+                            <div>
+                                ${saque.status === 'pendente' ? `
+                                    <button class="btn-acao btn-success" onclick="aprovarSaque('${id}')">Aprovar</button>
+                                    <button class="btn-acao btn-danger" onclick="rejeitarSaque('${id}')">Rejeitar</button>
+                                ` : '<span>' + saque.status + '</span>'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('listaSaques').innerHTML = html || '<p style="text-align: center;">Nenhum saque solicitado</p>';
+            });
+        }
+
+        function aprovarSaque(id) {
+            db.ref('saques/' + id + '/status').set('aprovado')
+                .then(() => carregarSaques());
+        }
+
+        function rejeitarSaque(id) {
+            db.ref('saques/' + id + '/status').set('rejeitado')
+                .then(() => carregarSaques());
+        }
+
+        // ===== TAREFAS =====
+        function carregarTarefas() {
+            db.ref('tarefas').once('value', snapshot => {
+                const tarefas = snapshot.val() || {};
+                let html = '';
+                
+                Object.entries(tarefas).forEach(([id, tarefa]) => {
+                    html += `
+                        <div class="usuario-item">
+                            <div>
+                                <strong>${tarefa.titulo}</strong><br>
+                                <small>R$ ${tarefa.recompensa.toFixed(2)} - ${tarefa.status}</small>
+                            </div>
+                            <div>
+                                <button class="btn-acao btn-excluir" onclick="excluirTarefa('${id}')">Excluir</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('listaTarefasAdmin').innerHTML = html || '<p style="text-align: center;">Nenhuma tarefa cadastrada</p>';
+            });
+        }
+
+        function excluirTarefa(id) {
+            if (confirm('Excluir esta tarefa?')) {
+                db.ref('tarefas/' + id).remove()
+                    .then(() => carregarTarefas());
+            }
+        }
+
+        function carregarDados() {
+            carregarCupons();
+        }
+
+        // Verificar login ao carregar
+        window.onload = function() {
+            // Já mostra login
+        };
     </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </body>
 </html>
