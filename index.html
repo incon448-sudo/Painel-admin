@@ -436,7 +436,19 @@
             color: white;
         }
         
-        /* ESTILOS DOS DADOS DO PIX NO SAQUE */
+        .debug-console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
         .pix-data-box {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -563,7 +575,7 @@
                 
                 <div class="form-group">
                     <label>Link da Plataforma *</label>
-                    <input type="url" id="taskLink" placeholder="https://...">
+                    <input type="text" id="taskLink" placeholder="https://...">
                 </div>
                 
                 <div class="form-group">
@@ -582,6 +594,12 @@
                 
                 <div id="errorBox" class="error-box"></div>
                 <div id="successBox" class="success-box"></div>
+                
+                <!-- Debug console visível -->
+                <div id="debugConsole" class="debug-console" style="display: block;">
+                    <strong>Console de Debug:</strong><br>
+                    Aguardando ação...
+                </div>
                 
                 <hr style="margin: 40px 0; border: none; border-top: 2px solid #e0e0e0;">
                 
@@ -617,7 +635,7 @@
 
     <script>
         // ============================================
-        // CONFIGURAÇÃO FIREBASE
+        // CONFIGURAÇÃO FIREBASE - SUBSTITUA AQUI
         // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyCVR7V_5zwbCZbyl0P0Xw9-XXXXXXXXXXXX",
@@ -635,8 +653,19 @@
         let tutorialFile = null;
         let isFirebaseInitialized = false;
         
+        function log(message) {
+            console.log(message);
+            const debugDiv = document.getElementById('debugConsole');
+            if (debugDiv) {
+                debugDiv.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
+                debugDiv.scrollTop = debugDiv.scrollHeight;
+            }
+        }
+        
         function initFirebase() {
             try {
+                log('🔄 Inicializando Firebase...');
+                
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                 }
@@ -652,6 +681,7 @@
                         statusEl.textContent = '🟢 Firebase Conectado';
                         statusEl.classList.remove('disconnected');
                         statusEl.classList.add('connected');
+                        log('✅ Firebase conectado!');
                     } else {
                         statusEl.textContent = '🔴 Firebase Desconectado';
                         statusEl.classList.remove('connected');
@@ -661,12 +691,14 @@
                 
                 return true;
             } catch (error) {
-                console.error('Erro ao inicializar Firebase:', error);
+                log('❌ Erro Firebase: ' + error.message);
                 return false;
             }
         }
         
         window.onload = function() {
+            log('🚀 Página carregada');
+            
             if (!initFirebase()) {
                 document.getElementById('loginError').textContent = 'Erro ao conectar com Firebase.';
                 document.getElementById('loginError').style.display = 'block';
@@ -717,19 +749,19 @@
         }
         
         function showError(message) {
+            log('❌ ERRO: ' + message);
             const errorBox = document.getElementById('errorBox');
             errorBox.textContent = '❌ ' + message;
-            errorBox.classList.add('show');
-            document.getElementById('successBox').classList.remove('show');
-            setTimeout(() => errorBox.classList.remove('show'), 5000);
+            errorBox.style.display = 'block';
+            document.getElementById('successBox').style.display = 'none';
         }
         
         function showSuccess(message) {
+            log('✅ SUCESSO: ' + message);
             const successBox = document.getElementById('successBox');
             successBox.textContent = '✅ ' + message;
-            successBox.classList.add('show');
-            document.getElementById('errorBox').classList.remove('show');
-            setTimeout(() => successBox.classList.remove('show'), 3000);
+            successBox.style.display = 'block';
+            document.getElementById('errorBox').style.display = 'none';
         }
         
         function showToast(message) {
@@ -845,7 +877,7 @@
                     comprovanteUrl: comprovanteUrl
                 });
                 
-                showToast('✅ Tarefa aprovada! R$ ' + task.reward.toFixed(2) + ' adicionado.');
+                showToast('✅ Tarefa aprovada!');
                 
             } catch (error) {
                 showError('Erro ao aprovar: ' + error.message);
@@ -877,6 +909,7 @@
         }
         
         function handleTutorialFile(event) {
+            log('📸 Arquivo selecionado');
             const file = event.target.files[0];
             if (file) {
                 tutorialFile = file;
@@ -892,38 +925,78 @@
             }
         }
         
+        // ============================================
+        // CREATE TASK - VERSÃO CORRIGIDA E DEBUGADA
+        // ============================================
         async function createTask() {
-            const title = document.getElementById('taskTitle').value.trim();
-            const desc = document.getElementById('taskDesc').value.trim();
-            const invest = parseFloat(document.getElementById('taskInvest').value);
-            const reward = parseFloat(document.getElementById('taskReward').value);
-            const link = document.getElementById('taskLink').value.trim();
-            
-            if (!title || !desc || !invest || !reward || !link) {
-                showError('Preencha todos os campos obrigatórios!');
-                return;
-            }
-            
-            const btn = document.getElementById('btnCreateTask');
-            btn.innerHTML = '<span class="loading"></span> Criando...';
-            btn.disabled = true;
+            log('📝 INICIANDO CRIAÇÃO DE TAREFA...');
             
             try {
+                // Verificar Firebase
+                if (!isFirebaseInitialized) {
+                    throw new Error('Firebase não inicializado');
+                }
+                
+                if (!database) {
+                    throw new Error('Database não disponível');
+                }
+                
+                // Pegar valores
+                const titleInput = document.getElementById('taskTitle');
+                const descInput = document.getElementById('taskDesc');
+                const investInput = document.getElementById('taskInvest');
+                const rewardInput = document.getElementById('taskReward');
+                const linkInput = document.getElementById('taskLink');
+                
+                log('📋 Lendo campos...');
+                
+                const title = titleInput ? titleInput.value.trim() : '';
+                const desc = descInput ? descInput.value.trim() : '';
+                const invest = investInput ? parseFloat(investInput.value) : 0;
+                const reward = rewardInput ? parseFloat(rewardInput.value) : 0;
+                const link = linkInput ? linkInput.value.trim() : '';
+                
+                log('Dados: ' + JSON.stringify({title, desc, invest, reward, link}));
+                
+                // Validar
+                if (!title) throw new Error('Digite o título');
+                if (!desc) throw new Error('Digite a descrição');
+                if (!invest || invest <= 0) throw new Error('Investimento inválido');
+                if (!reward || reward <= 0) throw new Error('Recompensa inválida');
+                if (!link) throw new Error('Digite o link');
+                
+                // Desabilitar botão
+                const btn = document.getElementById('btnCreateTask');
+                if (btn) {
+                    btn.innerHTML = '<span class="loading"></span> Criando...';
+                    btn.disabled = true;
+                }
+                
+                log('⬆️ Verificando imagem...');
+                
                 let tutorialImageUrl = null;
                 
-                if (tutorialFile) {
+                // Upload da imagem se existir
+                if (tutorialFile && storage) {
+                    log('📸 Fazendo upload da imagem...');
                     try {
                         const fileName = 'tutoriais/' + Date.now() + '_' + tutorialFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
                         const storageRef = storage.ref(fileName);
+                        
+                        log('Enviando: ' + fileName);
                         await storageRef.put(tutorialFile);
                         tutorialImageUrl = await storageRef.getDownloadURL();
+                        log('✅ Upload OK: ' + tutorialImageUrl);
                     } catch (uploadError) {
-                        console.error('Erro no upload:', uploadError);
+                        log('⚠️ Erro upload (continuando): ' + uploadError.message);
                     }
+                } else {
+                    log('ℹ️ Sem imagem ou storage não disponível');
                 }
                 
+                // Criar tarefa
                 const taskId = 'TASK_' + Date.now();
-                await database.ref('tasks/' + taskId).set({
+                const taskData = {
                     id: taskId,
                     title: title,
                     description: desc,
@@ -931,28 +1004,52 @@
                     reward: reward,
                     link: link,
                     tutorialImage: tutorialImageUrl,
-                    createdAt: Date.now()
-                });
+                    createdAt: Date.now(),
+                    createdBy: 'admin'
+                };
+                
+                log('💾 Salvando no database...');
+                log('Path: tasks/' + taskId);
+                log('Data: ' + JSON.stringify(taskData));
+                
+                // TENTAR SALVAR
+                await database.ref('tasks/' + taskId).set(taskData);
+                
+                log('✅ TAREFA CRIADA COM SUCESSO!');
                 
                 // Limpar formulário
-                document.getElementById('taskTitle').value = '';
-                document.getElementById('taskDesc').value = '';
-                document.getElementById('taskInvest').value = '';
-                document.getElementById('taskReward').value = '';
-                document.getElementById('taskLink').value = '';
-                document.getElementById('tutorialPreview').style.display = 'none';
-                document.getElementById('tutorialUploadText').style.display = 'block';
-                document.getElementById('tutorialUploadArea').classList.remove('has-file');
-                document.getElementById('tutorialFile').value = '';
+                if (titleInput) titleInput.value = '';
+                if (descInput) descInput.value = '';
+                if (investInput) investInput.value = '';
+                if (rewardInput) rewardInput.value = '';
+                if (linkInput) linkInput.value = '';
+                
+                const preview = document.getElementById('tutorialPreview');
+                const uploadText = document.getElementById('tutorialUploadText');
+                const uploadArea = document.getElementById('tutorialUploadArea');
+                const fileInput = document.getElementById('tutorialFile');
+                
+                if (preview) preview.style.display = 'none';
+                if (uploadText) uploadText.style.display = 'block';
+                if (uploadArea) uploadArea.classList.remove('has-file');
+                if (fileInput) fileInput.value = '';
+                
                 tutorialFile = null;
                 
                 showSuccess('Tarefa criada com sucesso!');
+                showToast('✅ Tarefa criada!');
                 
             } catch (error) {
-                showError('Erro ao criar tarefa: ' + error.message);
+                log('❌ ERRO: ' + error.message);
+                log('Stack: ' + (error.stack || 'N/A'));
+                showError(error.message);
             } finally {
-                btn.innerHTML = '✅ Criar Tarefa';
-                btn.disabled = false;
+                // Reabilitar botão
+                const btn = document.getElementById('btnCreateTask');
+                if (btn) {
+                    btn.innerHTML = '✅ Criar Tarefa';
+                    btn.disabled = false;
+                }
             }
         }
         
@@ -993,7 +1090,7 @@
         }
         
         async function deleteTask(taskId) {
-            if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+            if (!confirm('Tem certeza?')) return;
             
             try {
                 await database.ref('tasks/' + taskId).remove();
@@ -1003,9 +1100,6 @@
             }
         }
         
-        // ============================================
-        // SAQUES - COM DADOS DO PIX
-        // ============================================
         function loadSaques() {
             if (!isFirebaseInitialized) return;
             
@@ -1029,20 +1123,12 @@
         }
         
         function createSaqueCard(key, saque) {
-            // Formatar tipo de chave para exibição
             const tipoLabels = {
-                'cpf': 'CPF',
-                'cnpj': 'CNPJ',
-                'email': 'E-mail',
-                'telefone': 'Telefone',
-                'aleatoria': 'Chave Aleatória'
+                'cpf': 'CPF', 'cnpj': 'CNPJ', 'email': 'E-mail',
+                'telefone': 'Telefone', 'aleatoria': 'Chave Aleatória'
             };
             
             const pixData = saque.pixData || {};
-            const tipoChave = tipoLabels[pixData.tipoChave] || pixData.tipoChave || 'Não informado';
-            const chavePix = pixData.chave || 'Não informado';
-            const nomeTitular = pixData.nomeTitular || 'Não informado';
-            const banco = pixData.banco || 'Não informado';
             
             return `
                 <div class="approval-card" style="border-left-color: #667eea;">
@@ -1050,7 +1136,7 @@
                         <div>
                             <div class="approval-user">👤 ${saque.userId}</div>
                             <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                Solicitado em: ${new Date(saque.requestedAt).toLocaleString()}
+                                ${new Date(saque.requestedAt).toLocaleString()}
                             </div>
                         </div>
                         <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
@@ -1058,38 +1144,29 @@
                         </div>
                     </div>
                     
-                    <!-- DADOS DO PIX -->
                     <div class="pix-data-box">
-                        <h4>🏦 Dados para Transferência Pix</h4>
-                        
+                        <h4>🏦 Dados do Pix</h4>
                         <div class="pix-data-item">
-                            <span class="pix-data-label">Tipo de Chave:</span>
-                            <span class="pix-data-value">${tipoChave}</span>
+                            <span class="pix-data-label">Tipo:</span>
+                            <span class="pix-data-value">${tipoLabels[pixData.tipoChave] || pixData.tipoChave}</span>
                         </div>
-                        
                         <div class="pix-data-item">
-                            <span class="pix-data-label">Chave Pix:</span>
+                            <span class="pix-data-label">Chave:</span>
                         </div>
-                        <div class="pix-key-display">${chavePix}</div>
-                        
+                        <div class="pix-key-display">${pixData.chave || 'N/A'}</div>
                         <div class="pix-data-item" style="margin-top: 10px;">
-                            <span class="pix-data-label">Nome do Titular:</span>
-                            <span class="pix-data-value">${nomeTitular}</span>
+                            <span class="pix-data-label">Titular:</span>
+                            <span class="pix-data-value">${pixData.nomeTitular || 'N/A'}</span>
                         </div>
-                        
                         <div class="pix-data-item">
                             <span class="pix-data-label">Banco:</span>
-                            <span class="pix-data-value">${banco}</span>
+                            <span class="pix-data-value">${pixData.banco || 'N/A'}</span>
                         </div>
                     </div>
                     
                     <div class="approval-actions">
-                        <button class="btn-approve" onclick="completeSaque('${key}')">
-                            ✅ Marcar como Pago
-                        </button>
-                        <button class="btn-reject" onclick="rejectSaque('${key}')">
-                            ❌ Recusar e Devolver
-                        </button>
+                        <button class="btn-approve" onclick="completeSaque('${key}')">✅ Pago</button>
+                        <button class="btn-reject" onclick="rejectSaque('${key}')">❌ Recusar</button>
                     </div>
                 </div>
             `;
@@ -1101,9 +1178,9 @@
                     status: 'completed',
                     completedAt: Date.now()
                 });
-                showToast('✅ Saque marcado como pago');
+                showToast('✅ Saque pago');
             } catch (error) {
-                showError('Erro ao processar: ' + error.message);
+                showError('Erro: ' + error.message);
             }
         }
         
@@ -1112,7 +1189,6 @@
                 const snapshot = await database.ref('saques/' + saqueId).once('value');
                 const saque = snapshot.val();
                 
-                // Devolver dinheiro ao usuário
                 const userBalance = await database.ref('users/' + saque.userId + '/balance').once('value');
                 const newBalance = (userBalance.val() || 0) + saque.amount;
                 await database.ref('users/' + saque.userId + '/balance').set(newBalance);
@@ -1122,9 +1198,9 @@
                     rejectedAt: Date.now()
                 });
                 
-                showToast('❌ Saque recusado e R$ ' + saque.amount.toFixed(2) + ' devolvido');
+                showToast('❌ Saque recusado');
             } catch (error) {
-                showError('Erro ao recusar: ' + error.message);
+                showError('Erro: ' + error.message);
             }
         }
         
@@ -1144,7 +1220,7 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background: #f8f9fa;">
-                                <th style="padding: 12px; text-align: left;">ID do Usuário</th>
+                                <th style="padding: 12px; text-align: left;">ID</th>
                                 <th style="padding: 12px; text-align: center;">Saldo</th>
                                 <th style="padding: 12px; text-align: center;">Ações</th>
                             </tr>
@@ -1176,13 +1252,13 @@
         }
         
         async function editBalance(userId, currentBalance) {
-            const newBalance = prompt('Novo saldo para ' + userId + ':', currentBalance);
+            const newBalance = prompt('Novo saldo:', currentBalance);
             if (newBalance !== null && !isNaN(newBalance)) {
                 try {
                     await database.ref('users/' + userId + '/balance').set(parseFloat(newBalance));
                     showToast('✅ Saldo atualizado');
                 } catch (error) {
-                    showError('Erro ao atualizar: ' + error.message);
+                    showError('Erro: ' + error.message);
                 }
             }
         }
