@@ -3,366 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Tarefa Pix</title>
+    <title>Painel Admin - Tarefas</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 20px;
         }
-        
-        .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .login-box h2 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-        
-        .login-box input {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-        
-        .login-box button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
+        .container { max-width: 1200px; margin: 0 auto; }
         .header {
-            background: white;
+            background: rgba(255,255,255,0.95);
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            color: #667eea;
-            font-size: 1.5rem;
-        }
-        
-        .header button {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        
-        .stat-card h3 {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        
-        .stat-card .value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
+        .header h1 { color: #333; margin-bottom: 10px; }
         .tabs {
             display: flex;
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
-        
         .tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s;
-            font-weight: 500;
-            color: #666;
+            font-weight: 600;
         }
-        
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .section {
-            background: white;
-            border-radius: 15px;
+        .tab.active { background: #667eea; color: white; }
+        .tab:hover { transform: translateY(-2px); }
+        .content {
+            background: rgba(255,255,255,0.95);
             padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        
-        .section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
         .form-group {
             margin-bottom: 20px;
         }
-        
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
+            font-weight: 600;
+            color: #333;
         }
-        
-        .form-group input,
-        .form-group textarea {
+        input, textarea, select {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #ddd;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
-        
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { min-height: 100px; resize: vertical; }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
+        .btn-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .task-card {
             background: #f8f9fa;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .upload-area:hover {
-            background: #e9ecef;
-        }
-        
-        .upload-area.has-file {
-            border-color: #28a745;
-            background: #d4edda;
-        }
-        
-        .upload-preview {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-        
-        .btn-submit {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            width: 100%;
-        }
-        
-        .btn-submit:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .approval-card {
-            background: #f8f9fa;
-            border-radius: 15px;
             padding: 20px;
+            border-radius: 12px;
             margin-bottom: 15px;
-            border-left: 5px solid #ffc107;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
         }
-        
-        .approval-header {
+        .task-card:hover { transform: translateX(5px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .task-card.pending { border-left-color: #ffc107; }
+        .task-card.approved { border-left-color: #28a745; }
+        .task-card.rejected { border-left-color: #dc3545; }
+        .task-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        
-        .approval-user {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .approval-date {
-            color: #999;
-            font-size: 0.9rem;
-        }
-        
-        .approval-image {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            display: block;
-        }
-        
-        .approval-actions {
-            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
             gap: 10px;
         }
-        
-        .btn-approve {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 25px;
+        .task-title { font-size: 18px; font-weight: 700; color: #333; }
+        .task-status {
+            padding: 5px 15px;
             border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
-        
-        .btn-reject {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .task-list {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .task-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .task-info { color: #666; margin-bottom: 15px; }
+        .task-info p { margin: 5px 0; }
+        .task-actions {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        
-        .task-info h4 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .task-stats .reward {
-            color: #28a745;
-            font-weight: bold;
-        }
-        
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #333;
-            color: white;
-            padding: 15px 25px;
+        .task-actions .btn { padding: 10px 20px; font-size: 14px; }
+        .proof-image {
+            max-width: 300px;
+            max-height: 400px;
             border-radius: 10px;
-            z-index: 2000;
-            display: none;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: transform 0.3s;
         }
-        
-        .toast.show {
-            display: block;
-            animation: fadeIn 0.3s;
+        .proof-image:hover { transform: scale(1.05); }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
         }
-        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-number { font-size: 32px; font-weight: 700; }
+        .stat-label { font-size: 14px; opacity: 0.9; }
+        .hidden { display: none !important; }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: rgba(255,255,255,0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-container h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-proof { background: #e3f2fd; color: #1976d2; }
+        .badge-no-proof { background: #f3e5f5; color: #7b1fa2; }
+        .user-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .user-info p { margin: 5px 0; font-size: 14px; }
         .modal {
             display: none;
             position: fixed;
@@ -374,1278 +224,572 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
-        
-        .modal.active {
-            display: flex;
-        }
-        
+        .modal.active { display: flex; }
         .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
+            max-width: 90%;
+            max-height: 90%;
         }
-        
-        .modal-image {
+        .modal-content img {
             max-width: 100%;
+            max-height: 80vh;
             border-radius: 10px;
         }
-        
-        .error-box {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+        .debug-info {
+            background: #f5f5f5;
             padding: 15px;
             border-radius: 10px;
             margin-top: 15px;
-            display: none;
-        }
-        
-        .success-box {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .firebase-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            z-index: 9999;
-        }
-        
-        .firebase-status.connected {
-            background: #28a745;
-            color: white;
-        }
-        
-        .firebase-status.disconnected {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .debug-console {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
             font-family: monospace;
-            font-size: 0.8rem;
+            font-size: 12px;
             max-height: 200px;
             overflow-y: auto;
         }
-        
-        .pix-data-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 15px 0;
-        }
-        
-        .pix-data-box h4 {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-        
-        .pix-data-item {
+        .filter-buttons {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        
-        .pix-data-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .pix-data-label {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-        
-        .pix-data-value {
-            font-weight: bold;
-            text-align: right;
-        }
-        
-        .pix-key-display {
-            background: rgba(255,255,255,0.2);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 5px;
-            font-family: monospace;
-            word-break: break-all;
-        }
-        
-        .upload-status {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
-            color: #1565c0;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        
-        .comprovante-container {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .comprovante-img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        .comprovante-error {
-            padding: 20px;
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 10px;
-            color: #856404;
-            text-align: center;
-        }
-        
-        .comprovante-error button {
-            margin-top: 10px;
+        .filter-btn {
             padding: 8px 16px;
-            background: #ffc107;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .comprovante-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
-
-        /* ===== CUPONS ===== */
-        .cupom-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .cupom-stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-        }
-        
-        .cupom-stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        
-        .cupom-stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .cupom-form {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .cupom-list {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .cupom-item {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid #667eea;
-        }
-        
-        .cupom-code {
-            font-family: 'Courier New', monospace;
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #667eea;
+            border: 2px solid #667eea;
             background: white;
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: 2px dashed #667eea;
-        }
-        
-        .cupom-info {
-            flex: 1;
-            margin-left: 20px;
-        }
-        
-        .cupom-info p {
-            margin: 3px 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .cupom-status-badge {
-            padding: 5px 15px;
+            color: #667eea;
             border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
         }
-        
-        .cupom-status-ativo {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .cupom-status-usado {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .btn-copiar {
+        .filter-btn.active, .filter-btn:hover {
             background: #667eea;
             color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        
-        .btn-excluir-cupom {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="firebase-status disconnected" id="firebaseStatus">🔴 Firebase Desconectado</div>
-    
-    <div class="login-screen" id="loginScreen">
-        <div class="login-box">
-            <h2>🔐 Painel Administrativo</h2>
-            <input type="text" id="adminUser" placeholder="Usuário">
-            <input type="password" id="adminPass" placeholder="Senha">
-            <button onclick="login()">Entrar</button>
-            <div id="loginError" style="color: #dc3545; margin-top: 10px; display: none;"></div>
+    <!-- Login -->
+    <div id="loginSection" class="login-container">
+        <h2>🔐 Painel Administrativo</h2>
+        <div class="form-group">
+            <label>Usuário</label>
+            <input type="text" id="adminUser" placeholder="admin">
+        </div>
+        <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="adminPass" placeholder="admin123">
+        </div>
+        <button class="btn" onclick="login()" style="width: 100%;">Entrar</button>
+        <div id="loginError" style="color: #dc3545; margin-top: 15px; text-align: center; display: none;">
+            Usuário ou senha incorretos!
         </div>
     </div>
-    
-    <div id="mainPanel" class="hidden">
+
+    <!-- Painel Admin -->
+    <div id="adminPanel" class="container hidden">
         <div class="header">
-            <h1>⚙️ Painel Admin - Tarefa Pix</h1>
-            <button onclick="logout()">Sair</button>
-        </div>
-        
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total de Usuários</h3>
-                    <div class="value" id="totalUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Tarefas Pendentes</h3>
-                    <div class="value" id="pendingTasks">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Saques Pendentes</h3>
-                    <div class="value" id="pendingSaques">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total em Circulação</h3>
-                    <div class="value" id="totalBalance">R$ 0</div>
-                </div>
-            </div>
-            
+            <h1>👨‍💼 Painel de Administração</h1>
             <div class="tabs">
-                <div class="tab active" onclick="switchTab('approvals')">✅ Aprovações</div>
-                <div class="tab" onclick="switchTab('tasks')">📝 Tarefas</div>
-                <div class="tab" onclick="switchTab('saques')">💸 Saques</div>
-                <div class="tab" onclick="switchTab('cupons')">🎫 Cupons</div>
-                <div class="tab" onclick="switchTab('users')">👥 Usuários</div>
+                <button class="tab active" onclick="showTab('create')">➕ Criar Tarefa</button>
+                <button class="tab" onclick="showTab('pending')">⏳ Aprovações Pendentes</button>
+                <button class="tab" onclick="showTab('tasks')">📋 Todas as Tarefas</button>
+                <button class="tab" onclick="showTab('stats')">📊 Estatísticas</button>
+                <button class="tab" onclick="logout()">🚪 Sair</button>
             </div>
-            
-            <div id="section-approvals" class="section">
-                <h2>⏳ Aprovações Pendentes</h2>
-                <div id="approvalsList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
-                </div>
-            </div>
-            
-            <div id="section-tasks" class="section hidden">
-                <h2>📝 Criar Nova Tarefa</h2>
-                
+        </div>
+
+        <!-- Criar Tarefa -->
+        <div id="tab-create" class="content">
+            <h2 class="section-title">➕ Nova Tarefa</h2>
+            <form id="taskForm" onsubmit="createTask(event)">
                 <div class="form-group">
-                    <label>Título da Tarefa *</label>
-                    <input type="text" id="taskTitle" placeholder="Ex: Recarregar R$5 e ganhe R$6">
+                    <label>Título da Tarefa</label>
+                    <input type="text" id="taskTitle" required placeholder="Ex: Recarregue R$ 5 e receba R$ 6">
                 </div>
-                
                 <div class="form-group">
-                    <label>Descrição *</label>
-                    <textarea id="taskDesc" rows="3" placeholder="Descreva o que o usuário precisa fazer..."></textarea>
+                    <label>Descrição</label>
+                    <textarea id="taskDesc" required placeholder="Descreva os passos da tarefa..."></textarea>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="form-group">
-                        <label>Valor a Investir (R$) *</label>
-                        <input type="number" id="taskInvest" step="0.01" placeholder="5.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Recompensa (R$) *</label>
-                        <input type="number" id="taskReward" step="0.01" placeholder="6.00">
-                    </div>
-                </div>
-                
                 <div class="form-group">
-                    <label>Link da Plataforma *</label>
-                    <input type="text" id="taskLink" placeholder="https://...">
+                    <label>Link da Plataforma (opcional)</label>
+                    <input type="url" id="taskLink" placeholder="https://...">
                 </div>
-                
                 <div class="form-group">
-                    <label>📸 Imagem do Tutorial (Opcional)</label>
-                    <div class="upload-area" id="tutorialUploadArea" onclick="document.getElementById('tutorialFile').click()">
-                        <div id="tutorialUploadText">
-                            📷 Clique para adicionar foto do tutorial<br>
-                            <small>Mostre passo a passo de como fazer</small>
-                        </div>
-                        <img id="tutorialPreview" class="upload-preview" style="display:none;">
-                    </div>
-                    <input type="file" id="tutorialFile" accept="image/*" style="display:none;" onchange="handleTutorialFile(event)">
-                    <div id="uploadStatus" class="upload-status"></div>
+                    <label>Recompensa (moedas)</label>
+                    <input type="number" id="taskReward" required min="1" value="60" placeholder="60">
+                </div>
+                <div class="form-group">
+                    <label>Imagem da Tarefa (opcional)</label>
+                    <input type="file" id="taskImage" accept="image/*" onchange="previewImage(this, 'previewTaskImage')">
+                    <img id="previewTaskImage" style="max-width: 200px; margin-top: 10px; display: none; border-radius: 10px;">
                 </div>
                 
-                <button class="btn-submit" id="btnCreateTask" onclick="createTask()">✅ Criar Tarefa</button>
-                
-                <div id="errorBox" class="error-box"></div>
-                <div id="successBox" class="success-box"></div>
-                
-                <div id="debugConsole" class="debug-console">
-                    <strong>Console de Debug:</strong><br>
-                    Aguardando ação...
+                <!-- Checkbox para exigir comprovante -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="requireProof" checked>
+                    <label for="requireProof">📸 Exigir comprovante (print) para completar esta tarefa</label>
                 </div>
                 
-                <hr style="margin: 40px 0; border: none; border-top: 2px solid #e0e0e0;">
-                
-                <h2>📋 Tarefas Existentes</h2>
-                <div class="task-list" id="tasksList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
-                </div>
+                <button type="submit" class="btn">Criar Tarefa</button>
+            </form>
+            <div id="createMessage" style="margin-top: 15px; padding: 15px; border-radius: 10px; display: none;"></div>
+        </div>
+
+        <!-- Aprovações Pendentes -->
+        <div id="tab-pending" class="content hidden">
+            <h2 class="section-title">⏳ Aprovações Pendentes</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterPending('all')">Todas</button>
+                <button class="filter-btn" onclick="filterPending('with-proof')">Com Comprovante</button>
+                <button class="filter-btn" onclick="filterPending('without-proof')">Sem Comprovante</button>
             </div>
-            
-            <div id="section-saques" class="section hidden">
-                <h2>💸 Saques Pendentes</h2>
-                <div id="saquesList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
-                </div>
-            </div>
-            
-            <!-- ===== NOVA ABA: CUPONS ===== -->
-            <div id="section-cupons" class="section hidden">
-                <h2>🎫 Gerenciar Cupons</h2>
-                
-                <!-- Estatísticas -->
-                <div class="cupom-stats">
-                    <div class="cupom-stat-card">
-                        <div class="cupom-stat-value" id="totalCupons">0</div>
-                        <div class="cupom-stat-label">Total de Cupons</div>
-                    </div>
-                    <div class="cupom-stat-card">
-                        <div class="cupom-stat-value" id="cuponsAtivos">0</div>
-                        <div class="cupom-stat-label">Cupons Ativos</div>
-                    </div>
-                    <div class="cupom-stat-card">
-                        <div class="cupom-stat-value" id="cuponsUsados">0</div>
-                        <div class="cupom-stat-label">Cupons Usados</div>
-                    </div>
-                    <div class="cupom-stat-card">
-                        <div class="cupom-stat-value" id="valorDistribuido">R$ 0</div>
-                        <div class="cupom-stat-label">Valor Distribuído</div>
-                    </div>
-                </div>
-                
-                <!-- Formulário -->
-                <div class="cupom-form">
-                    <h3 style="margin-bottom: 15px; color: #333;">➕ Gerar Novo Cupom</h3>
-                    <div class="form-group">
-                        <label>Código do Cupom (ex: META300)</label>
-                        <input type="text" id="cupomCode" placeholder="Digite o código..." style="text-transform: uppercase;">
-                    </div>
-                    <div class="form-group">
-                        <label>Valor (R$)</label>
-                        <input type="number" id="cupomValor" value="1.50" step="0.01" min="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label>Descrição/Observação</label>
-                        <input type="text" id="cupomDescricao" placeholder="Ex: Sorteio para 300 membros">
-                    </div>
-                    <button class="btn-submit" onclick="gerarCupom()">🎫 Gerar Cupom</button>
-                    <div id="cupomError" class="error-box" style="margin-top: 15px;"></div>
-                    <div id="cupomSuccess" class="success-box" style="margin-top: 15px;"></div>
-                </div>
-                
-                <!-- Lista -->
-                <h3 style="margin-bottom: 15px; color: #333;">📋 Cupons Gerados</h3>
-                <div class="cupom-list" id="cuponsList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
-                </div>
-            </div>
-            
-            <div id="section-users" class="section hidden">
-                <h2>👥 Gerenciar Usuários</h2>
-                <div id="usersList">
-                    <p style="text-align: center; color: #999;">Carregando...</p>
+            <div id="pendingList">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <p>Carregando...</p>
                 </div>
             </div>
         </div>
+
+        <!-- Todas as Tarefas -->
+        <div id="tab-tasks" class="content hidden">
+            <h2 class="section-title">📋 Gerenciar Tarefas</h2>
+            <div id="tasksList">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <p>Carregando tarefas...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div id="tab-stats" class="content hidden">
+            <h2 class="section-title">📊 Estatísticas</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="statTotalTasks">0</div>
+                    <div class="stat-label">Total de Tarefas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statPending">0</div>
+                    <div class="stat-label">Pendentes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statApproved">0</div>
+                    <div class="stat-label">Aprovadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statRejected">0</div>
+                    <div class="stat-label">Rejeitadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statTotalUsers">0</div>
+                    <div class="stat-label">Usuários</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statTotalCoins">0</div>
+                    <div class="stat-label">Moedas Distribuídas</div>
+                </div>
+            </div>
+            <div id="debugInfo" class="debug-info" style="display: none;"></div>
+        </div>
     </div>
-    
-    <div class="modal" id="imageModal" onclick="closeImageModal()">
+
+    <!-- Modal para imagem -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
         <div class="modal-content">
-            <img id="modalImage" class="modal-image" src="" alt="Comprovante">
+            <img id="modalImage" src="" alt="Comprovante">
         </div>
     </div>
-    
-    <div class="toast" id="toast"></div>
 
     <script>
-        // ============================================
-        // CONFIGURAÇÃO FIREBASE
-        // ============================================
+        // Firebase Config
         const firebaseConfig = {
-            apiKey: "AIzaSyA1r_PfVzXqDLxI52znZpopBjvlz2W2WzQ",
+            apiKey: "AIzaSyChd5rTWWcK2f4eihD9bMOt43XqMh-3Y3c",
             authDomain: "tarefa-pix.firebaseapp.com",
             databaseURL: "https://tarefa-pix-default-rtdb.firebaseio.com",
             projectId: "tarefa-pix",
-            storageBucket: "tarefa-pix.firebasestorage.app",
-            messagingSenderId: "16378804197",
-            appId: "1:16378804197:web:0e95c0fd5440ec4e7e2106"
+            storageBucket: "tarefa-pix.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123"
         };
-        
-        let database;
-        let currentTab = 'approvals';
-        let tutorialFile = null;
-        let isFirebaseInitialized = false;
-        
-        function log(message) {
-            console.log(message);
-            const debugDiv = document.getElementById('debugConsole');
-            if (debugDiv) {
-                debugDiv.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
-                debugDiv.scrollTop = debugDiv.scrollHeight;
-            }
-        }
-        
-        function showUploadStatus(message) {
-            const statusDiv = document.getElementById('uploadStatus');
-            if (statusDiv) {
-                statusDiv.textContent = message;
-                statusDiv.style.display = 'block';
-            }
-        }
-        
-        function initFirebase() {
-            try {
-                log('🔄 Inicializando Firebase...');
-                
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                
-                database = firebase.database();
-                isFirebaseInitialized = true;
-                
-                database.ref('.info/connected').on('value', (snap) => {
-                    const connected = snap.val();
-                    const statusEl = document.getElementById('firebaseStatus');
-                    if (connected) {
-                        statusEl.textContent = '🟢 Firebase Conectado';
-                        statusEl.classList.remove('disconnected');
-                        statusEl.classList.add('connected');
-                        log('✅ Firebase conectado!');
-                    } else {
-                        statusEl.textContent = '🔴 Firebase Desconectado';
-                        statusEl.classList.remove('connected');
-                        statusEl.classList.add('disconnected');
-                    }
-                });
-                
-                return true;
-            } catch (error) {
-                log('❌ Erro Firebase: ' + error.message);
-                return false;
-            }
-        }
-        
-        window.onload = function() {
-            log('🚀 Página carregada');
-            
-            if (!initFirebase()) {
-                document.getElementById('loginError').textContent = 'Erro ao conectar com Firebase.';
-                document.getElementById('loginError').style.display = 'block';
-                return;
-            }
-            
-            const isLogged = localStorage.getItem('adminLogged');
-            if (isLogged === 'true') {
-                showMainPanel();
-            }
-        };
-        
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Variáveis globais
+        let currentTab = 'create';
+        let pendingFilter = 'all';
+
+        // Login
         function login() {
             const user = document.getElementById('adminUser').value;
             const pass = document.getElementById('adminPass').value;
             
             if (user === 'admin' && pass === 'admin123') {
-                localStorage.setItem('adminLogged', 'true');
-                showMainPanel();
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadStats();
             } else {
-                document.getElementById('loginError').textContent = 'Usuário ou senha incorretos!';
                 document.getElementById('loginError').style.display = 'block';
             }
         }
-        
+
         function logout() {
-            localStorage.removeItem('adminLogged');
-            location.reload();
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
         }
-        
-        function showMainPanel() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainPanel').classList.remove('hidden');
-            
-            loadStats();
-            loadApprovals();
-            loadTasks();
-            loadSaques();
-            loadCupons();
-            loadUsers();
-        }
-        
-        function switchTab(tab) {
+
+        // Navegação
+        function showTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
-            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('section-' + tab).classList.remove('hidden');
-        }
-        
-        function showError(message) {
-            log('❌ ERRO: ' + message);
-            const errorBox = document.getElementById('errorBox');
-            errorBox.textContent = '❌ ' + message;
-            errorBox.style.display = 'block';
-            document.getElementById('successBox').style.display = 'none';
-        }
-        
-        function showSuccess(message) {
-            log('✅ SUCESSO: ' + message);
-            const successBox = document.getElementById('successBox');
-            successBox.textContent = '✅ ' + message;
-            successBox.style.display = 'block';
-            document.getElementById('errorBox').style.display = 'none';
-        }
-        
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-        
-        function loadStats() {
-            if (!isFirebaseInitialized) return;
             
-            database.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val() || {};
-                document.getElementById('totalUsers').textContent = Object.keys(users).length;
-                
-                let total = 0;
-                Object.values(users).forEach(u => total += u.balance || 0);
-                document.getElementById('totalBalance').textContent = 'R$ ' + total.toFixed(2);
-            });
+            document.querySelectorAll('.content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + tab).classList.remove('hidden');
             
-            database.ref('pendingApprovals').on('value', (snapshot) => {
-                const approvals = snapshot.val() || {};
-                document.getElementById('pendingTasks').textContent = Object.keys(approvals).length;
-            });
-            
-            database.ref('saques').on('value', (snapshot) => {
-                const saques = snapshot.val() || {};
-                const pending = Object.values(saques).filter(s => s.status === 'pending').length;
-                document.getElementById('pendingSaques').textContent = pending;
-            });
+            if (tab === 'pending') loadPending();
+            if (tab === 'tasks') loadTasks();
+            if (tab === 'stats') loadStats();
         }
-        
-        // ============================================
-        // CUPONS - NOVO SISTEMA
-        // ============================================
-        function loadCupons() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('cupons').on('value', (snapshot) => {
-                const cupons = snapshot.val() || {};
-                const list = document.getElementById('cuponsList');
-                
-                let total = 0, ativos = 0, usados = 0, valorTotal = 0;
-                let html = '';
-                
-                Object.values(cupons).forEach(cupom => {
-                    total++;
-                    if (cupom.status === 'ativo') ativos++;
-                    if (cupom.status === 'usado') {
-                        usados++;
-                        valorTotal += cupom.valor;
-                    }
-                    
-                    html += `
-                        <div class="cupom-item">
-                            <div class="cupom-code">${cupom.codigo}</div>
-                            <div class="cupom-info">
-                                <p><strong>Valor:</strong> R$ ${cupom.valor.toFixed(2)}</p>
-                                <p>${cupom.descricao || 'Sem descrição'}</p>
-                                <p style="font-size: 0.8rem; color: #999;">
-                                    Criado: ${new Date(cupom.dataCriacao).toLocaleString()}
-                                </p>
-                                ${cupom.usadoPor ? `<p style="font-size: 0.8rem; color: #666;">Usado por: ${cupom.usadoPor}</p>` : ''}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="cupom-status-badge ${cupom.status === 'ativo' ? 'cupom-status-ativo' : 'cupom-status-usado'}">
-                                    ${cupom.status === 'ativo' ? '🟢 ATIVO' : '🔴 USADO'}
-                                </span>
-                                ${cupom.status === 'ativo' ? `
-                                    <button class="btn-copiar" onclick="copiarCupom('${cupom.codigo}')">📋 Copiar</button>
-                                    <button class="btn-excluir-cupom" onclick="excluirCupom('${cupom.codigo}')">🗑️</button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                document.getElementById('totalCupons').textContent = total;
-                document.getElementById('cuponsAtivos').textContent = ativos;
-                document.getElementById('cuponsUsados').textContent = usados;
-                document.getElementById('valorDistribuido').textContent = 'R$ ' + valorTotal.toFixed(2);
-                
-                list.innerHTML = html || '<p style="text-align: center; color: #999;">Nenhum cupom gerado ainda</p>';
-            });
-        }
-        
-        async function gerarCupom() {
-            const codigo = document.getElementById('cupomCode').value.toUpperCase().trim();
-            const valor = parseFloat(document.getElementById('cupomValor').value);
-            const descricao = document.getElementById('cupomDescricao').value.trim();
-            
-            const errorBox = document.getElementById('cupomError');
-            const successBox = document.getElementById('cupomSuccess');
-            
-            if (!codigo) {
-                errorBox.textContent = '❌ Digite um código!';
-                errorBox.style.display = 'block';
-                successBox.style.display = 'none';
-                return;
+
+        // Preview de imagem
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        // Criar tarefa
+        async function createTask(e) {
+            e.preventDefault();
             
-            if (!valor || valor <= 0) {
-                errorBox.textContent = '❌ Valor inválido!';
-                errorBox.style.display = 'block';
-                successBox.style.display = 'none';
-                return;
-            }
+            const btn = e.target.querySelector('.btn');
+            btn.disabled = true;
+            btn.textContent = 'Criando...';
+            
+            const title = document.getElementById('taskTitle').value;
+            const desc = document.getElementById('taskDesc').value;
+            const link = document.getElementById('taskLink').value;
+            const reward = parseInt(document.getElementById('taskReward').value);
+            const requireProof = document.getElementById('requireProof').checked;
+            const imageFile = document.getElementById('taskImage').files[0];
             
             try {
-                const cupom = {
-                    codigo: codigo,
-                    valor: valor,
-                    descricao: descricao,
-                    status: 'ativo',
-                    usadoPor: null,
-                    dataCriacao: Date.now(),
-                    dataUso: null
+                let imageBase64 = null;
+                if (imageFile) {
+                    imageBase64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(imageFile);
+                    });
+                }
+                
+                const taskData = {
+                    id: Date.now().toString(),
+                    title,
+                    description: desc,
+                    link: link || null,
+                    reward,
+                    requireProof: requireProof,
+                    image: imageBase64,
+                    createdAt: Date.now(),
+                    active: true
                 };
                 
-                await database.ref('cupons/' + codigo).set(cupom);
+                console.log('Criando tarefa:', taskData);
                 
-                successBox.textContent = `✅ Cupom "${codigo}" gerado com sucesso!`;
-                successBox.style.display = 'block';
-                errorBox.style.display = 'none';
+                await db.ref('tasks/' + taskData.id).set(taskData);
                 
-                document.getElementById('cupomCode').value = '';
-                document.getElementById('cupomDescricao').value = '';
-                
-                showToast('🎫 Cupom gerado!');
+                showMessage('createMessage', '✅ Tarefa criada com sucesso!', 'success');
+                document.getElementById('taskForm').reset();
+                document.getElementById('previewTaskImage').style.display = 'none';
                 
             } catch (error) {
-                errorBox.textContent = '❌ Erro: ' + error.message;
-                errorBox.style.display = 'block';
-                successBox.style.display = 'none';
+                console.error('Erro ao criar tarefa:', error);
+                showMessage('createMessage', '❌ Erro: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Criar Tarefa';
             }
         }
-        
-        function copiarCupom(codigo) {
-            navigator.clipboard.writeText(codigo).then(() => {
-                alert(`✅ Cupom "${codigo}" copiado!\\n\\nCole no grupo do WhatsApp/Telegram.`);
-            });
+
+        function showMessage(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
+            el.style.color = type === 'success' ? '#155724' : '#721c24';
+            setTimeout(() => el.style.display = 'none', 5000);
         }
-        
-        async function excluirCupom(codigo) {
-            if (!confirm(`Tem certeza que deseja excluir o cupom "${codigo}"?`)) return;
+
+        // Carregar pendentes
+        function loadPending() {
+            const list = document.getElementById('pendingList');
+            list.innerHTML = '<div class="empty-state"><p>Carregando...</p></div>';
             
-            try {
-                await database.ref('cupons/' + codigo).remove();
-                showToast('🗑️ Cupom excluído');
-            } catch (error) {
-                alert('❌ Erro ao excluir: ' + error.message);
-            }
-        }
-        
-        // ============================================
-        // APROVAÇÕES
-        // ============================================
-        function createComprovanteHTML(imageData, approvalKey) {
-            if (!imageData) {
-                return '<p style="color: #999; text-align: center;">Sem comprovante</p>';
-            }
-            
-            let imageSrc = imageData;
-            
-            if (imageData.startsWith('data:image')) {
-                imageSrc = imageData;
-            } else if (imageData.startsWith('http')) {
-                imageSrc = imageData;
-            } else {
-                imageSrc = 'data:image/jpeg;base64,' + imageData;
-            }
-            
-            const imgId = 'comp-img-' + approvalKey;
-            
-            return `
-                <div class="comprovante-container" id="container-${approvalKey}">
-                    <img id="${imgId}" 
-                         src="${imageSrc}" 
-                         class="comprovante-img"
-                         onclick="openImageModal('${imageSrc}')"
-                         onerror="handleImageError('${approvalKey}', '${imageData}')"
-                         alt="Comprovante">
-                    <div id="error-${approvalKey}" style="display: none;"></div>
-                </div>
-            `;
-        }
-        
-        function handleImageError(approvalKey, imageData) {
-            log('❌ Erro ao carregar imagem: ' + approvalKey);
-            
-            const container = document.getElementById('container-' + approvalKey);
-            const errorDiv = document.getElementById('error-' + approvalKey);
-            
-            if (container && errorDiv) {
-                const img = document.getElementById('comp-img-' + approvalKey);
-                if (img) img.style.display = 'none';
+            db.ref('user_tasks').once('value', (snapshot) => {
+                const userTasks = snapshot.val() || {};
+                const pending = [];
                 
-                errorDiv.innerHTML = `
-                    <div class="comprovante-error">
-                        <p>⚠️ Não foi possível carregar a imagem</p>
-                        <button onclick="retryImage('${approvalKey}', '${imageData}')">🔄 Tentar novamente</button>
-                        <br>
-                        <a href="${imageData}" target="_blank" class="comprovante-link">🔗 Abrir em nova aba</a>
-                    </div>
-                `;
-                errorDiv.style.display = 'block';
-            }
-        }
-        
-        function retryImage(approvalKey, imageData) {
-            const img = document.getElementById('comp-img-' + approvalKey);
-            const errorDiv = document.getElementById('error-' + approvalKey);
-            
-            if (img && errorDiv) {
-                errorDiv.style.display = 'none';
-                img.style.display = 'block';
-                img.src = imageData + '?retry=' + Date.now();
-            }
-        }
-        
-        function loadApprovals() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('pendingApprovals').on('value', (snapshot) => {
-                const approvals = snapshot.val() || {};
-                const list = document.getElementById('approvalsList');
-                
-                if (Object.keys(approvals).length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhuma aprovação pendente 🎉</p>';
-                    return;
-                }
-                
-                let html = '';
-                Object.keys(approvals).forEach(key => {
-                    const approval = approvals[key];
-                    html += createApprovalCard(key, approval);
+                Object.entries(userTasks).forEach(([userId, tasks]) => {
+                    Object.entries(tasks).forEach(([taskId, taskData]) => {
+                        if (taskData.status === 'pending') {
+                            pending.push({
+                                userId,
+                                taskId,
+                                ...taskData
+                            });
+                        }
+                    });
                 });
-                list.innerHTML = html;
-            });
-        }
-        
-        function createApprovalCard(key, approval) {
-            const comprovanteHTML = createComprovanteHTML(approval.comprovanteImage || approval.comprovanteUrl, key);
-            
-            return `
-                <div class="approval-card" id="approval-${key}">
-                    <div class="approval-header">
-                        <div>
-                            <div class="approval-user">👤 ${approval.userId}</div>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                Tarefa: ${approval.taskId}
-                            </div>
-                        </div>
-                        <div class="approval-date">
-                            ${new Date(approval.submittedAt).toLocaleString()}
-                        </div>
-                    </div>
-                    
-                    ${comprovanteHTML}
-                    
-                    <div class="approval-actions">
-                        <button class="btn-approve" onclick="approveTask('${key}', '${approval.userId}', '${approval.taskId}', '${approval.comprovanteImage || approval.comprovanteUrl || ''}')">
-                            ✅ Aprovar
-                        </button>
-                        <button class="btn-reject" onclick="rejectTask('${key}', '${approval.userId}', '${approval.taskId}')">
-                            ❌ Rejeitar
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        async function approveTask(approvalKey, userId, taskId, comprovanteImage) {
-            try {
-                const taskSnapshot = await database.ref('tasks/' + taskId).once('value');
-                const task = taskSnapshot.val();
                 
-                if (!task) {
-                    showError('Tarefa não encontrada');
+                // Filtrar
+                let filtered = pending;
+                if (pendingFilter === 'with-proof') {
+                    filtered = pending.filter(p => p.proofImage);
+                } else if (pendingFilter === 'without-proof') {
+                    filtered = pending.filter(p => !p.proofImage);
+                }
+                
+                if (filtered.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <p>Nenhuma aprovação pendente!</p>
+                        </div>
+                    `;
                     return;
                 }
                 
-                await database.ref('userTasks/' + userId + '/' + taskId).update({
+                list.innerHTML = filtered.map(p => `
+                    <div class="task-card pending">
+                        <div class="task-header">
+                            <span class="task-title">${p.taskTitle || 'Tarefa'}</span>
+                            <span class="task-status status-pending">⏳ Pendente</span>
+                        </div>
+                        <div class="user-info">
+                            <p><strong>👤 Usuário:</strong> ${p.userId}</p>
+                            <p><strong>📅 Enviado em:</strong> ${new Date(p.completedAt || p.submittedAt).toLocaleString()}</p>
+                            ${p.requireProof === false ? '<span class="badge badge-no-proof">📸 Sem comprovante exigido</span>' : ''}
+                            ${p.proofImage ? '<span class="badge badge-proof">📸 Com comprovante</span>' : ''}
+                        </div>
+                        ${p.proofImage ? `
+                            <img src="${p.proofImage}" class="proof-image" onclick="openModal('${p.proofImage}')" alt="Comprovante">
+                        ` : '<p style="color: #666; font-style: italic;">Nenhuma imagem enviada</p>'}
+                        <div class="task-actions">
+                            <button class="btn btn-success" onclick="approveTask('${p.userId}', '${p.taskId}', ${p.reward || 0})">✅ Aprovar</button>
+                            <button class="btn btn-danger" onclick="rejectTask('${p.userId}', '${p.taskId}')">❌ Rejeitar</button>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function filterPending(type) {
+            pendingFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            loadPending();
+        }
+
+        // Aprovar tarefa
+        async function approveTask(userId, taskId, reward) {
+            if (!confirm('Tem certeza que deseja APROVAR esta tarefa?')) return;
+            
+            try {
+                // Atualizar status
+                await db.ref(`user_tasks/${userId}/${taskId}`).update({
                     status: 'approved',
                     approvedAt: Date.now()
                 });
                 
-                const userSnapshot = await database.ref('users/' + userId + '/balance').once('value');
-                const currentBalance = userSnapshot.val() || 0;
-                await database.ref('users/' + userId + '/balance').set(currentBalance + task.reward);
+                // Adicionar moedas ao usuário
+                if (reward > 0) {
+                    const userRef = db.ref(`users/${userId}`);
+                    const snapshot = await userRef.once('value');
+                    const userData = snapshot.val() || {};
+                    const currentCoins = userData.coins || 0;
+                    
+                    await userRef.update({
+                        coins: currentCoins + reward
+                    });
+                }
                 
-                await database.ref('pendingApprovals/' + approvalKey).remove();
-                
-                await database.ref('approvedTasks/' + approvalKey).set({
-                    userId: userId,
-                    taskId: taskId,
-                    reward: task.reward,
-                    approvedAt: Date.now(),
-                    comprovanteImage: comprovanteImage
-                });
-                
-                showToast('✅ Tarefa aprovada!');
-                
+                alert('✅ Tarefa aprovada com sucesso!');
+                loadPending();
+                loadStats();
             } catch (error) {
-                showError('Erro ao aprovar: ' + error.message);
+                alert('❌ Erro ao aprovar: ' + error.message);
             }
         }
-        
-        async function rejectTask(approvalKey, userId, taskId) {
+
+        // Rejeitar tarefa
+        async function rejectTask(userId, taskId) {
+            if (!confirm('Tem certeza que deseja REJEITAR esta tarefa?')) return;
+            
             try {
-                await database.ref('userTasks/' + userId + '/' + taskId).update({
+                await db.ref(`user_tasks/${userId}/${taskId}`).update({
                     status: 'rejected',
                     rejectedAt: Date.now()
                 });
                 
-                await database.ref('pendingApprovals/' + approvalKey).remove();
-                showToast('❌ Tarefa rejeitada');
-                
+                alert('❌ Tarefa rejeitada!');
+                loadPending();
+                loadStats();
             } catch (error) {
-                showError('Erro ao rejeitar: ' + error.message);
+                alert('❌ Erro ao rejeitar: ' + error.message);
             }
         }
-        
-        function openImageModal(url) {
-            document.getElementById('modalImage').src = url;
-            document.getElementById('imageModal').classList.add('active');
-        }
-        
-        function closeImageModal() {
-            document.getElementById('imageModal').classList.remove('active');
-        }
-        
-        function handleTutorialFile(event) {
-            log('📸 Arquivo selecionado');
-            const file = event.target.files[0];
-            if (file) {
-                if (file.size > 500 * 1024) {
-                    showError('Imagem muito grande! Máximo 500KB');
-                    return;
-                }
-                
-                tutorialFile = file;
-                log('Arquivo: ' + file.name + ' (' + (file.size/1024).toFixed(2) + ' KB)');
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('tutorialPreview').src = e.target.result;
-                    document.getElementById('tutorialPreview').style.display = 'block';
-                    document.getElementById('tutorialUploadText').style.display = 'none';
-                    document.getElementById('tutorialUploadArea').classList.add('has-file');
-                    showUploadStatus('📷 Imagem pronta (base64)');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        async function createTask() {
-            log('📝 INICIANDO CRIAÇÃO DE TAREFA...');
-            
-            try {
-                if (!isFirebaseInitialized || !database) {
-                    throw new Error('Firebase não inicializado');
-                }
-                
-                const title = document.getElementById('taskTitle').value.trim();
-                const desc = document.getElementById('taskDesc').value.trim();
-                const invest = parseFloat(document.getElementById('taskInvest').value);
-                const reward = parseFloat(document.getElementById('taskReward').value);
-                const link = document.getElementById('taskLink').value.trim();
-                
-                log('Dados: ' + JSON.stringify({title, desc, invest, reward}));
-                
-                if (!title) throw new Error('Digite o título');
-                if (!desc) throw new Error('Digite a descrição');
-                if (!invest || invest <= 0) throw new Error('Investimento inválido');
-                if (!reward || reward <= 0) throw new Error('Recompensa inválida');
-                if (!link) throw new Error('Digite o link');
-                
-                const btn = document.getElementById('btnCreateTask');
-                btn.innerHTML = '<span class="loading"></span> Criando...';
-                btn.disabled = true;
-                
-                let tutorialImageBase64 = null;
-                
-                if (tutorialFile) {
-                    log('📸 Convertendo imagem para base64...');
-                    showUploadStatus('🔄 Processando imagem...');
-                    
-                    try {
-                        tutorialImageBase64 = await fileToBase64(tutorialFile);
-                        log('✅ Imagem convertida! Tamanho: ' + (tutorialImageBase64.length/1024).toFixed(2) + ' KB');
-                        showUploadStatus('✅ Imagem pronta!');
-                    } catch (imgError) {
-                        log('❌ Erro na imagem: ' + imgError.message);
-                        showUploadStatus('⚠️ Erro na imagem, continuando sem...');
-                        tutorialImageBase64 = null;
-                    }
-                }
-                
-                const taskId = 'TASK_' + Date.now();
-                const taskData = {
-                    id: taskId,
-                    title: title,
-                    description: desc,
-                    invest: invest,
-                    reward: reward,
-                    link: link,
-                    tutorialImage: tutorialImageBase64,
-                    createdAt: Date.now(),
-                    createdBy: 'admin'
-                };
-                
-                log('💾 Salvando tarefa no Realtime Database...');
-                await database.ref('tasks/' + taskId).set(taskData);
-                
-                log('✅ TAREFA CRIADA COM SUCESSO!');
-                
-                document.getElementById('taskTitle').value = '';
-                document.getElementById('taskDesc').value = '';
-                document.getElementById('taskInvest').value = '';
-                document.getElementById('taskReward').value = '';
-                document.getElementById('taskLink').value = '';
-                document.getElementById('tutorialPreview').style.display = 'none';
-                document.getElementById('tutorialUploadText').style.display = 'block';
-                document.getElementById('tutorialUploadArea').classList.remove('has-file');
-                document.getElementById('tutorialFile').value = '';
-                document.getElementById('uploadStatus').style.display = 'none';
-                tutorialFile = null;
-                
-                showSuccess('Tarefa criada com sucesso!' + (tutorialImageBase64 ? ' (com imagem base64)' : ' (sem imagem)'));
-                showToast('✅ Tarefa criada!');
-                
-            } catch (error) {
-                log('❌ ERRO: ' + error.message);
-                showError(error.message);
-            } finally {
-                const btn = document.getElementById('btnCreateTask');
-                btn.innerHTML = '✅ Criar Tarefa';
-                btn.disabled = false;
-            }
-        }
-        
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-        
+
+        // Carregar todas as tarefas
         function loadTasks() {
-            if (!isFirebaseInitialized) return;
+            const list = document.getElementById('tasksList');
             
-            database.ref('tasks').on('value', (snapshot) => {
+            db.ref('tasks').once('value', (snapshot) => {
                 const tasks = snapshot.val() || {};
-                const list = document.getElementById('tasksList');
                 
                 if (Object.keys(tasks).length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999;">Nenhuma tarefa criada</p>';
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            <p>Nenhuma tarefa criada ainda.</p>
+                        </div>
+                    `;
                     return;
                 }
                 
-                let html = '';
-                Object.keys(tasks).forEach(taskId => {
-                    const task = tasks[taskId];
-                    html += `
-                        <div class="task-item">
-                            <div class="task-info">
-                                <h4>${task.title}</h4>
-                                <p>${task.description}</p>
-                                ${task.tutorialImage ? '<span style="color: #17a2b8;">📸 Com tutorial (base64)</span>' : ''}
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <div class="task-stats" style="margin-right: 15px;">
-                                    <div class="reward">+R$ ${task.reward.toFixed(2)}</div>
-                                    <div style="color: #666; font-size: 0.9rem;">Invest: R$ ${task.invest.toFixed(2)}</div>
-                                </div>
-                                <button class="btn-delete" onclick="deleteTask('${taskId}')">🗑️</button>
+                list.innerHTML = Object.entries(tasks).map(([id, task]) => `
+                    <div class="task-card ${task.active ? '' : 'rejected'}">
+                        <div class="task-header">
+                            <span class="task-title">${task.title}</span>
+                            <div>
+                                ${task.requireProof ? '<span class="badge badge-proof">📸 Exige comprovante</span>' : '<span class="badge badge-no-proof">✅ Não exige comprovante</span>'}
+                                <span class="task-status ${task.active ? 'status-approved' : 'status-rejected'}">
+                                    ${task.active ? '✅ Ativa' : '❌ Desativada'}
+                                </span>
                             </div>
                         </div>
-                    `;
-                });
-                list.innerHTML = html;
+                        <div class="task-info">
+                            <p>${task.description}</p>
+                            <p><strong>💰 Recompensa:</strong> ${task.reward} moedas</p>
+                            ${task.link ? `<p><strong>🔗 Link:</strong> <a href="${task.link}" target="_blank">${task.link}</a></p>` : ''}
+                        </div>
+                        ${task.image ? `<img src="${task.image}" style="max-width: 200px; border-radius: 10px; margin-top: 10px;">` : ''}
+                        <div class="task-actions">
+                            <button class="btn ${task.active ? 'btn-danger' : 'btn-success'}" onclick="toggleTask('${id}', ${!task.active})">
+                                ${task.active ? '❌ Desativar' : '✅ Ativar'}
+                            </button>
+                            <button class="btn btn-warning" onclick="deleteTask('${id}')">🗑️ Excluir</button>
+                        </div>
+                    </div>
+                `).join('');
             });
         }
-        
+
+        // Toggle tarefa
+        async function toggleTask(taskId, active) {
+            try {
+                await db.ref(`tasks/${taskId}`).update({ active });
+                loadTasks();
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        // Deletar tarefa
         async function deleteTask(taskId) {
-            if (!confirm('Tem certeza?')) return;
+            if (!confirm('Tem certeza que deseja EXCLUIR esta tarefa permanentemente?')) return;
             
             try {
-                await database.ref('tasks/' + taskId).remove();
-                showToast('🗑️ Tarefa excluída');
+                await db.ref(`tasks/${taskId}`).remove();
+                loadTasks();
             } catch (error) {
-                showError('Erro ao excluir: ' + error.message);
+                alert('Erro: ' + error.message);
             }
         }
-        
-        function loadSaques() {
-            if (!isFirebaseInitialized) return;
-            
-            database.ref('saques').on('value', (snapshot) => {
-                const saques = snapshot.val() || {};
-                const list = document.getElementById('saquesList');
-                
-                const pendingSaques = Object.entries(saques).filter(([key, s]) => s.status === 'pending');
-                
-                if (pendingSaques.length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum saque pendente</p>';
-                    return;
-                }
-                
-                let html = '';
-                pendingSaques.forEach(([key, saque]) => {
-                    html += createSaqueCard(key, saque);
-                });
-                list.innerHTML = html;
+
+        // Estatísticas
+        function loadStats() {
+            // Total de tarefas
+            db.ref('tasks').once('value', (snapshot) => {
+                const tasks = snapshot.val() || {};
+                document.getElementById('statTotalTasks').textContent = Object.keys(tasks).length;
             });
-        }
-        
-        function createSaqueCard(key, saque) {
-            const tipoLabels = {
-                'cpf': 'CPF', 'cnpj': 'CNPJ', 'email': 'E-mail',
-                'telefone': 'Telefone', 'aleatoria': 'Chave Aleatória'
-            };
             
-            const pixData = saque.pixData || {};
-            
-            return `
-                <div class="approval-card" style="border-left-color: #667eea;">
-                    <div class="approval-header">
-                        <div>
-                            <div class="approval-user">👤 ${saque.userId}</div>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                ${new Date(saque.requestedAt).toLocaleString()}
-                            </div>
-                        </div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
-                            R$ ${saque.amount.toFixed(2)}
-                        </div>
-                    </div>
-                    
-                    <div class="pix-data-box">
-                        <h4>🏦 Dados do Pix</h4>
-                        <div class="pix-data-item">
-                            <span class="pix-data-label">Tipo:</span>
-                            <span class="pix-data-value">${tipoLabels[pixData.tipoChave] || pixData.tipoChave}</span>
-                        </div>
-                        <div class="pix-data-item">
-                            <span class="pix-data-label">Chave:</span>
-                        </div>
-                        <div class="pix-key-display">${pixData.chave || 'N/A'}</div>
-                        <div class="pix-data-item" style="margin-top: 10px;">
-                            <span class="pix-data-label">Titular:</span>
-                            <span class="pix-data-value">${pixData.nomeTitular || 'N/A'}</span>
-                        </div>
-                        <div class="pix-data-item">
-                            <span class="pix-data-label">Banco:</span>
-                            <span class="pix-data-value">${pixData.banco || 'N/A'}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="approval-actions">
-                        <button class="btn-approve" onclick="completeSaque('${key}')">✅ Pago</button>
-                        <button class="btn-reject" onclick="rejectSaque('${key}')">❌ Recusar</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        async function completeSaque(saqueId) {
-            try {
-                await database.ref('saques/' + saqueId).update({
-                    status: 'completed',
-                    completedAt: Date.now()
-                });
-                showToast('✅ Saque pago');
-            } catch (error) {
-                showError('Erro: ' + error.message);
-            }
-        }
-        
-        async function rejectSaque(saqueId) {
-            try {
-                const snapshot = await database.ref('saques/' + saqueId).once('value');
-                const saque = snapshot.val();
+            // User tasks
+            db.ref('user_tasks').once('value', (snapshot) => {
+                const userTasks = snapshot.val() || {};
+                let pending = 0, approved = 0, rejected = 0;
                 
-                const userBalance = await database.ref('users/' + saque.userId + '/balance').once('value');
-                const newBalance = (userBalance.val() || 0) + saque.amount;
-                await database.ref('users/' + saque.userId + '/balance').set(newBalance);
-                
-                await database.ref('saques/' + saqueId).update({
-                    status: 'rejected',
-                    rejectedAt: Date.now()
+                Object.values(userTasks).forEach(userTaskList => {
+                    Object.values(userTaskList).forEach(task => {
+                        if (task.status === 'pending') pending++;
+                        else if (task.status === 'approved') approved++;
+                        else if (task.status === 'rejected') rejected++;
+                    });
                 });
                 
-                showToast('❌ Saque recusado');
-            } catch (error) {
-                showError('Erro: ' + error.message);
-            }
-        }
-        
-        function loadUsers() {
-            if (!isFirebaseInitialized) return;
+                document.getElementById('statPending').textContent = pending;
+                document.getElementById('statApproved').textContent = approved;
+                document.getElementById('statRejected').textContent = rejected;
+            });
             
-            database.ref('users').on('value', (snapshot) => {
+            // Usuários e moedas
+            db.ref('users').once('value', (snapshot) => {
                 const users = snapshot.val() || {};
-                const list = document.getElementById('usersList');
+                document.getElementById('statTotalUsers').textContent = Object.keys(users).length;
                 
-                if (Object.keys(users).length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #999;">Nenhum usuário</p>';
-                    return;
-                }
-                
-                let html = `
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background: #f8f9fa;">
-                                <th style="padding: 12px; text-align: left;">ID</th>
-                                <th style="padding: 12px; text-align: center;">Saldo</th>
-                                <th style="padding: 12px; text-align: center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                Object.keys(users).forEach(userId => {
-                    const user = users[userId];
-                    html += `
-                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                            <td style="padding: 12px;">${userId}</td>
-                            <td style="padding: 12px; text-align: center; font-weight: bold; color: #28a745;">
-                                R$ ${(user.balance || 0).toFixed(2)}
-                            </td>
-                            <td style="padding: 12px; text-align: center;">
-                                <button onclick="editBalance('${userId}', ${user.balance || 0})" 
-                                        style="background: #667eea; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">
-                                    ✏️ Editar
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                let totalCoins = 0;
+                Object.values(users).forEach(user => {
+                    totalCoins += user.coins || 0;
                 });
-                
-                html += '</tbody></table>';
-                list.innerHTML = html;
+                document.getElementById('statTotalCoins').textContent = totalCoins;
             });
         }
-        
-        async function editBalance(userId, currentBalance) {
-            const newBalance = prompt('Novo saldo:', currentBalance);
-            if (newBalance !== null && !isNaN(newBalance)) {
-                try {
-                    await database.ref('users/' + userId + '/balance').set(parseFloat(newBalance));
-                    showToast('✅ Saldo atualizado');
-                } catch (error) {
-                    showError('Erro: ' + error.message);
-                }
-            }
+
+        // Modal
+        function openModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').classList.add('active');
         }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Enter para login
+        document.getElementById('adminPass')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>
