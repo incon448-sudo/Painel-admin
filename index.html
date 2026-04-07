@@ -1375,6 +1375,10 @@
                     throw new Error('Firebase não inicializado');
                 }
                 
+                // Gerar ID da tarefa PRIMEIRO
+                const taskId = 'TASK_' + Date.now();
+                log('🆔 Task ID gerado: ' + taskId);
+                
                 const title = document.getElementById('taskTitle').value.trim();
                 const desc = document.getElementById('taskDesc').value.trim();
                 const invest = parseFloat(document.getElementById('taskInvest').value);
